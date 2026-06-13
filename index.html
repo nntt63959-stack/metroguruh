@@ -2,242 +2,92 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Metrologiya — Guruh Testi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrologiya — Sinxron Test</title>
     <style>
-        :root {
-            --bg-color: #0f111a;
-            --card-bg: #161925;
-            --input-bg: #1f2336;
-            --border-color: #2e344d;
-            --accent-color: #5d75f5;
-            --text-main: #f1f3f9;
-            --text-muted: #7e87a6;
-            --success: #2ec4b6;
-            --danger: #e63946;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-        }
-        .container {
-            width: 100%;
-            max-width: 440px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 32px 24px;
-            display: none;
-        }
+        :root { --bg: #0f111a; --card: #161925; --accent: #5d75f5; --text: #f1f3f9; --gray: #7e87a6; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 100%; max-width: 440px; background: var(--card); border-radius: 24px; padding: 24px; display: none; }
         .container.active { display: block; }
-        h2 { text-align: center; margin-bottom: 24px; }
-        .btn-mode {
-            width: 100%; padding: 16px; background: var(--input-bg);
-            border: 1px solid var(--border-color); border-radius: 16px;
-            color: var(--text-main); font-size: 16px; cursor: pointer; margin-bottom: 12px;
-        }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
-        input {
-            width: 100%; padding: 14px 16px; background: var(--input-bg);
-            border: 1px solid var(--border-color); border-radius: 14px; color: var(--text-main); font-size: 16px;
-        }
-        .btn-primary {
-            width: 100%; padding: 16px; background: var(--accent-color);
-            border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 700; cursor: pointer;
-        }
-        .option-btn {
-            width: 100%; padding: 14px; background: var(--input-bg);
-            border: 1px solid var(--border-color); border-radius: 12px;
-            color: white; font-size: 15px; text-align: left; cursor: pointer; margin-bottom: 8px;
-        }
-        .option-btn.correct { background: var(--success); border-color: var(--success); }
-        .option-btn.wrong { background: var(--danger); border-color: var(--danger); }
-        .timer { font-size: 20px; font-weight: bold; color: var(--danger); text-align: center; margin-bottom: 15px; }
-        .score-board { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; color: var(--text-muted); }
+        .btn-primary { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 14px; color: white; font-weight: 700; cursor: pointer; }
+        .live-bar { display: flex; gap: 8px; margin-top: 15px; overflow-x: auto; padding: 10px; background: #1f2336; border-radius: 12px; }
+        .student-chip { padding: 6px 12px; background: #2e344d; border-radius: 20px; font-size: 12px; }
+        .option-btn { width: 100%; padding: 14px; background: #1f2336; border: 1px solid #2e344d; border-radius: 12px; color: white; margin-bottom: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="screen-mode" class="container active">
-        <h2>Metrologiya Test Tizimi</h2>
-        <button class="btn-mode" onclick="changeScreen('screen-admin-auth')">🔑 Admin Panel</button>
-        <button class="btn-mode" onclick="changeScreen('screen-student-join')">👨‍🎓 O'quvchi Sifatida Kirish</button>
-    </div>
+<div id="s-home" class="container active">
+    <h2>Metrologiya Test</h2>
+    <button class="btn-primary" onclick="changeScreen('s-admin-auth')">🔑 Admin Panel</button>
+    <button class="btn-primary" style="margin-top:10px; background:#2e344d;" onclick="changeScreen('s-student-join')">👨‍🎓 O'quvchi Kirish</button>
+</div>
 
-    <div id="screen-admin-auth" class="container">
-        <h2>Admin Haqiqiyligi</h2>
-        <div class="form-group">
-            <label>Admin Paroli</label>
-            <input type="password" id="admin-pass" placeholder="Parolni kiriting">
-        </div>
-        <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
-    </div>
+<div id="s-admin-auth" class="container">
+    <h2>Admin Paroli</h2>
+    <input type="password" id="admin-pass" style="width:100%; padding:14px; background:#1f2336; border-radius:14px; border:none; color:white; margin-bottom:10px;">
+    <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
+</div>
 
-    <div id="screen-admin-setup" class="container">
-        <h2>Test Sozlamalari</h2>
-        <div class="form-group">
-            <label>O'quvchilar uchun kalit so'z</label>
-            <input type="text" id="session-key" value="012">
-        </div>
-        <div class="form-group">
-            <label>Har savolga vaqt (soniya)</label>
-            <input type="number" id="time-limit" value="30">
-        </div>
-        <button class="btn-primary" onclick="changeScreen('screen-admin-waiting')">✅ Sessiya yaratish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
+<div id="s-admin-panel" class="container">
+    <h2>Boshqaruv</h2>
+    <div id="admin-controls">
+        <button class="btn-primary" onclick="adminNext()">Keyingi Savol ▶</button>
     </div>
+    <div class="live-bar" id="live-bar-admin"></div>
+</div>
 
-    <div id="screen-admin-waiting" class="container">
-        <h2>Kutish Zali</h2>
-        <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">O'quvchilar tayyor. Testni boshlashingiz mumkin.</p>
-        <button class="btn-primary" onclick="startQuizNow()">🚀 Testni Boshlash</button>
-    </div>
+<div id="s-student-join" class="container">
+    <h2>Ismingizni kiriting</h2>
+    <input type="text" id="stu-name" style="width:100%; padding:14px; background:#1f2336; border-radius:14px; border:none; color:white; margin-bottom:10px;">
+    <button class="btn-primary" onclick="joinStudent()">Qo'shilish</button>
+</div>
 
-    <div id="screen-student-join" class="container">
-        <h2>Testga Qo'shilish</h2>
-        <div class="form-group">
-            <label>Ism va Familiyangiz</label>
-            <input type="text" id="student-name" placeholder="Ismingiz">
-        </div>
-        <div class="form-group">
-            <label>Sessiya Kalit So'zi</label>
-            <input type="text" id="student-key" placeholder="Kalit so'zni yozing">
-        </div>
-        <button class="btn-primary" onclick="joinStudent()">Guruhga Qo'shilish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
-    </div>
-
-    <div id="screen-student-waiting" class="container">
-        <h2>Kutish rejimi...</h2>
-        <p style="text-align:center; color:var(--text-muted); margin-top:15px;">O'qituvchi testni boshlashini kuting.</p>
-    </div>
-
-    <div id="screen-quiz" class="container">
-        <div class="score-board">
-            <span id="question-counter">Savol: 1/5</span>
-            <span id="live-score">To'g'ri: 0</span>
-        </div>
-        <div class="timer" id="timer-display">30</div>
-        <h3 id="question-text" style="margin-bottom: 20px; font-size: 18px; line-height: 1.4;">Savol matni</h3>
-        <div id="options-container"></div>
-    </div>
-
-    <div id="screen-results" class="container">
-        <h2>Test Yakunlandi!</h2>
-        <p id="final-result-text" style="text-align:center; font-size:18px; margin: 20px 0; color:var(--success); font-weight:bold;"></p>
-        <button class="btn-primary" onclick="location.reload()">Qaytadan boshlash</button>
-    </div>
+<div id="s-quiz" class="container">
+    <h3 id="q-text">Savol yuklanmoqda...</h3>
+    <div id="q-options"></div>
+    <div class="live-bar" id="live-bar-stu"></div>
+</div>
 
 <script>
-const QUESTIONS = [
-    {q: "Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?", o: ["Metrologik tekshiruv va kalibrlash", "Faqat vizual ko'rik", "Hech qanday tekshiruv", "Faqat ta'mirlash"], c: 0},
-    {q: "Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?", o: ["Uskunalar narxini belgilash", "Tibbiy diagnostika uskunalarining aniqligini kafolatlash", "Uskunalarni chet eldan sotib olish", "Bino xavfsizligi"], c: 1},
-    {q: "O'lchash vositalarining qiyoslash turlari qaysilar?", o: ["Faqat davriy qiyoslash", "Ixtiyoriy qiyoslash", "Davriy, navbatdan tashqari, inspeksiya, ekspert", "Boshlang'ich qiyoslash"], c: 2},
-    {q: "Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "O'ng oyoqqa", "Chap oyoqqa", "Chap qo'lga"], c: 3},
-    {q: "Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "Chap qo'lga", "O'ng oyoqqa", "Chap oyoqqa"], c: 0}
-];
+let state = {
+    step: 'wait', // wait, start, q1, q2
+    players: [],
+    myStatus: '⏳'
+};
 
-let currentQuestionIndex = 0;
-let score = 0;
-let timerInterval = null;
-let timeLeft = 30;
-
-function changeScreen(targetId) {
-    document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
-    document.getElementById(targetId).style.display = 'block';
+function changeScreen(id) {
+    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
 function verifyAdmin() {
-    if(document.getElementById('admin-pass').value === 'metro777') changeScreen('screen-admin-setup');
-    else alert('Xato parol!');
+    if(document.getElementById('admin-pass').value === 'metro777') changeScreen('s-admin-panel');
+    else alert('Xato!');
 }
 
 function joinStudent() {
-    const name = document.getElementById('student-name').value.trim();
-    const key = document.getElementById('student-key').value.trim();
-    if(!name || !key) return alert('Hamma maydonlarni to\'ldiring!');
-    
-    // O'quvchi kirganda to'g'ridan-to'g'ri test sahifasini simulyatsiya qilamiz
-    startQuizNow();
+    let name = document.getElementById('stu-name').value;
+    state.players.push({name: name, status: '⏳'});
+    changeScreen('s-quiz');
+    updateUI();
 }
 
-function startQuizNow() {
-    changeScreen('screen-quiz');
-    currentQuestionIndex = 0;
-    score = 0;
-    showQuestion();
+function adminNext() {
+    // Sinxron holat o'zgarishi
+    alert('Keyingi savolga o\'tildi!');
+    updateUI();
 }
 
-function showQuestion() {
-    if(currentQuestionIndex >= QUESTIONS.length) {
-        return finishQuiz();
-    }
-
-    clearInterval(timerInterval);
-    const currentQuestion = QUESTIONS[currentQuestionIndex];
-    
-    document.getElementById('question-counter').textContent = `Savol: ${currentQuestionIndex + 1}/${QUESTIONS.length}`;
-    document.getElementById('live-score').textContent = `To'g'ri: ${score}`;
-    document.getElementById('question-text').textContent = currentQuestion.q;
-    
-    const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '';
-    
-    currentQuestion.o.forEach((option, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = option;
-        btn.onclick = () => checkAnswer(index, btn);
-        optionsContainer.appendChild(btn);
-    });
-
-    const userTime = parseInt(document.getElementById('time-limit').value);
-    timeLeft = userTime ? userTime : 30;
-    document.getElementById('timer-display').textContent = timeLeft;
-
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer-display').textContent = timeLeft;
-        if(timeLeft <= 0) {
-            currentQuestionIndex++;
-            showQuestion();
-        }
-    }, 1000);
+function updateUI() {
+    // Jonli panelni yangilash
+    const bar = document.getElementById('live-bar-admin');
+    bar.innerHTML = state.players.map(p => `<div class="student-chip">${p.name} ${p.status}</div>`).join('');
 }
 
-function checkAnswer(selectedIndex, clickedBtn) {
-    clearInterval(timerInterval);
-    const correctIndex = QUESTIONS[currentQuestionIndex].c;
-    const buttons = document.querySelectorAll('.option-btn');
-    
-    buttons.forEach(btn => btn.disabled = true);
+// Har 1.5 soniyada holatni yangilash (Sinxronizatsiya simulyatsiyasi)
+setInterval(updateUI, 1500);
 
-    if(selectedIndex === correctIndex) {
-        clickedBtn.classList.add('correct');
-        score++;
-    } else {
-        clickedBtn.classList.add('wrong');
-        buttons[correctIndex].classList.add('correct');
-    }
-
-    setTimeout(() => {
-        currentQuestionIndex++;
-        showQuestion();
-    }, 1500);
-}
-
-function finishQuiz() {
-    changeScreen('screen-results');
-    document.getElementById('final-result-text').textContent = `Siz 5 ta savoldan ${score} tasiga to'g'ri javob berdingiz!`;
-}
 </script>
 </body>
 </html>
