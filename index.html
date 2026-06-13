@@ -2,92 +2,355 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metrologiya — Sinxron Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Metrologiya — Guruh Sinxron Testi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0f111a; --card: #161925; --accent: #5d75f5; --text: #f1f3f9; --gray: #7e87a6; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { width: 100%; max-width: 440px; background: var(--card); border-radius: 24px; padding: 24px; display: none; }
+        :root {
+            --bg: #0f111a; --card: #161925; --input: #1f2336;
+            --border: #2e344d; --accent: #5d75f5; --accent-hover: #4a62e3;
+            --text: #f1f3f9; --muted: #7e87a6; --success: #2ec4b6; --danger: #e63946;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+        .container { width: 100%; max-width: 460px; background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 32px 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); display: none; }
         .container.active { display: block; }
-        .btn-primary { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 14px; color: white; font-weight: 700; cursor: pointer; }
-        .live-bar { display: flex; gap: 8px; margin-top: 15px; overflow-x: auto; padding: 10px; background: #1f2336; border-radius: 12px; }
-        .student-chip { padding: 6px 12px; background: #2e344d; border-radius: 20px; font-size: 12px; }
-        .option-btn { width: 100%; padding: 14px; background: #1f2336; border: 1px solid #2e344d; border-radius: 12px; color: white; margin-bottom: 8px; cursor: pointer; }
+        h2 { text-align: center; margin-bottom: 24px; font-size: 24px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px 16px; background: var(--input); border: 1px solid var(--border); border-radius: 14px; color: var(--text); font-size: 16px; outline: none; }
+        input:focus, select:focus { border-color: var(--accent); }
+        .btn-primary { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-mode { width: 100%; padding: 16px; background: var(--input); border: 1px solid var(--border); border-radius: 16px; color: var(--text); font-size: 16px; cursor: pointer; margin-bottom: 12px; transition: 0.2s; }
+        .btn-mode:hover { border-color: var(--accent); }
+        .live-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; padding: 12px; background: var(--input); border-radius: 14px; min-height: 50px; }
+        .chip { padding: 6px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        .opt-btn { width: 100%; text-align: left; padding: 15px; background: var(--input); border: 1px solid var(--border); border-radius: 14px; color: white; font-size: 15px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .opt-btn.selected { border-color: var(--accent); background: rgba(93, 117, 245, 0.1); }
+        .opt-btn.correct { background: var(--success) !important; border-color: var(--success) !important; color: #fff; }
+        .opt-btn.wrong { background: var(--danger) !important; border-color: var(--danger) !important; color: #fff; }
+        .timer { font-size: 26px; font-weight: bold; color: #facc15; text-align: center; margin-bottom: 15px; }
+        .ranking-list { list-style: none; margin-top: 15px; }
+        .ranking-list li { display: flex; justify-content: space-between; padding: 12px; background: var(--input); border-radius: 10px; margin-bottom: 8px; font-size: 16px; }
     </style>
 </head>
 <body>
 
-<div id="s-home" class="container active">
-    <h2>Metrologiya Test</h2>
-    <button class="btn-primary" onclick="changeScreen('s-admin-auth')">🔑 Admin Panel</button>
-    <button class="btn-primary" style="margin-top:10px; background:#2e344d;" onclick="changeScreen('s-student-join')">👨‍🎓 O'quvchi Kirish</button>
-</div>
-
-<div id="s-admin-auth" class="container">
-    <h2>Admin Paroli</h2>
-    <input type="password" id="admin-pass" style="width:100%; padding:14px; background:#1f2336; border-radius:14px; border:none; color:white; margin-bottom:10px;">
-    <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
-</div>
-
-<div id="s-admin-panel" class="container">
-    <h2>Boshqaruv</h2>
-    <div id="admin-controls">
-        <button class="btn-primary" onclick="adminNext()">Keyingi Savol ▶</button>
+    <div id="scr-mode" class="container active">
+        <h2>Metrologiya Guruh Testi</h2>
+        <button class="btn-mode" onclick="changeScreen('scr-auth')">🔑 Admin Panel</button>
+        <button class="btn-mode" onclick="changeScreen('scr-join')">👨‍🎓 O'quvchi Sifatida Kirish</button>
     </div>
-    <div class="live-bar" id="live-bar-admin"></div>
-</div>
 
-<div id="s-student-join" class="container">
-    <h2>Ismingizni kiriting</h2>
-    <input type="text" id="stu-name" style="width:100%; padding:14px; background:#1f2336; border-radius:14px; border:none; color:white; margin-bottom:10px;">
-    <button class="btn-primary" onclick="joinStudent()">Qo'shilish</button>
-</div>
+    <div id="scr-auth" class="container">
+        <h2>Admin Kirish</h2>
+        <div class="form-group">
+            <label>Admin Paroli</label>
+            <input type="password" id="adm-pass" placeholder="Parol">
+        </div>
+        <button class="btn-primary" onclick="loginAdmin()">Kirish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('scr-mode')">← Orqaga</button>
+    </div>
 
-<div id="s-quiz" class="container">
-    <h3 id="q-text">Savol yuklanmoqda...</h3>
-    <div id="q-options"></div>
-    <div class="live-bar" id="live-bar-stu"></div>
-</div>
+    <div id="scr-setup" class="container">
+        <h2>Test Sozlamalari</h2>
+        <div class="form-group">
+            <label>O'quvchilar uchun kalit so'z</label>
+            <input type="text" id="adm-key" value="012">
+        </div>
+        <div class="form-group">
+            <label>Savol guruhi</label>
+            <select id="adm-group">
+                <option value="g1">1-guruh: 1–30-savollar</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Har savolga vaqt (soniya)</label>
+            <input type="number" id="adm-time" value="60">
+        </div>
+        <div class="form-group">
+            <label>Maksimal o'quvchilar soni</label>
+            <input type="number" id="adm-max" value="20">
+        </div>
+        <button class="btn-primary" onclick="setupSession()">✅ Sessiya Yaratish</button>
+    </div>
+
+    <div id="scr-adm-wait" class="container">
+        <h2>Kutish Zali (Admin)</h2>
+        <p style="text-align:center; color:var(--muted);" id="lbl-adm-key">Kalit so'z: -</p>
+        <div class="live-bar" id="lbar-adm-wait"></div>
+        <button class="btn-primary" style="margin-top:20px;" onclick="startQuizServer()">🚀 Testni Boshlash</button>
+    </div>
+
+    <div id="scr-join" class="container">
+        <h2>Guruhga Qo'shilish</h2>
+        <div class="form-group">
+            <label>Ism va Familiyangiz</label>
+            <input type="text" id="stu-name" placeholder="Masalan: Sardorbek">
+        </div>
+        <div class="form-group">
+            <label>Sessiya kalit so'zi</label>
+            <input type="text" id="stu-key" placeholder="012">
+        </div>
+        <button class="btn-primary" onclick="joinSessionServer()">Qo'shilish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('scr-mode')">← Orqaga</button>
+    </div>
+
+    <div id="scr-stu-wait" class="container">
+        <h2>Kutish rejimi...</h2>
+        <p style="text-align:center; color:var(--muted); margin-top:10px;">O'qituvchi testni boshlashini kuting.</p>
+        <div class="live-bar" id="lbar-stu-wait"></div>
+    </div>
+
+    <div id="scr-quiz" class="container">
+        <div style="display:flex; justify-content:space-between; color:var(--muted); font-size:14px; margin-bottom:10px;">
+            <span id="quiz-qnum">Savol: 1/--</span>
+            <span id="quiz-score">Ball: 0</span>
+        </div>
+        <div class="timer" id="quiz-timer">60</div>
+        <h3 id="quiz-qtext" style="font-size:18px; margin-bottom:20px; line-height:1.4;">Savol yuklanmoqda...</h3>
+        <div id="quiz-opts"></div>
+        
+        <h4 style="margin-top:24px; font-size:12px; color:var(--muted); text-transform:uppercase;">Jonli Panel (Live Bar)</h4>
+        <div class="live-bar" id="lbar-quiz"></div>
+        
+        <button class="btn-primary" id="btn-adm-next" style="margin-top:20px; display:none;" onclick="nextQuizServer()">Keyingi Savol ▶</button>
+    </div>
+
+    <div id="scr-result" class="container">
+        <h2>🏆 Yakuniy Reyting</h2>
+        <p style="text-align:center; color:var(--muted); margin-bottom:15px;">Barcha o'quvchilar natijalari:</p>
+        <ul class="ranking-list" id="ranking-render"></ul>
+        <button class="btn-primary" style="margin-top:20px;" onclick="location.reload()">Bosh sahifaga qaytish</button>
+    </div>
 
 <script>
-let state = {
-    step: 'wait', // wait, start, q1, q2
-    players: [],
-    myStatus: '⏳'
-};
+const DB_URL = 'https://loiunbshwzptgqaxmrrp.supabase.co';
+const DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvaXVuYnNod3pwdGdxeG1ycnAiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NDU0NDAwMCwiZXhwIjoyMTAwMTAwMDAwfQ.demo_secure';
+const supabaseClient = supabase.createClient(DB_URL, DB_KEY);
 
-function changeScreen(id) {
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+const DATA = [
+    {q: "Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?", o: ["Metrologik tekshiruv va kalibrlash", "Faqat vizual ko'rik", "Hech qanday tekshiruv", "Faqat ta'mirlash"], c: 0},
+    {q: "Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?", o: ["Uskunalar narxini belgilash", "Tibbiy diagnostika uskunalarining aniqligini kafolatlash", "Uskunalarni chet eldan sotib olish", "Bino xavfsizligi"], c: 1},
+    {q: "O'lchash vositalarining qiyoslash turlari qaysilar?", o: ["Faqat davriy qiyoslash", "Ixtiyoriy qiyoslash", "Davriy, navbatdan tashqari, inspeksiya, ekspert", "Boshlang'ich qiyoslash"], c: 2},
+    {q: "Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "O'ng oyoqqa", "Chap oyoqqa", "Chap qo'lga"], c: 3},
+    {q: "Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "Chap qo'lga", "O'ng oyoqqa", "Chap oyoqqa"], c: 0}
+];
+
+let role = ''; let myName = ''; let sessionKey = ''; let currentQ = -1; let score = 0; let timer = null; let transitionTimeout = null;
+let gamePlayers = []; let gameAnswers = []; let gameStatus = 'waiting'; let timeLimit = 60;
+let channel = null; let hasAnsweredCurrent = false; let isTransitioning = false;
+
+function changeScreen(id) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function loginAdmin() { window.scrollTo(0,0); if(document.getElementById('adm-pass').value === 'metro777') { role = 'admin'; changeScreen('scr-setup'); } else alert('Xato parol!'); }
+
+function setupSession() {
+    sessionKey = document.getElementById('adm-key').value.trim();
+    timeLimit = parseInt(document.getElementById('adm-time').value) || 60;
+    if(!sessionKey) return alert('Kalit so‘zni kiriting!');
+    document.getElementById('lbl-adm-key').textContent = `Kalit so'z: ${sessionKey}`;
+    changeScreen('scr-adm-wait');
+    connectRealtime();
 }
 
-function verifyAdmin() {
-    if(document.getElementById('admin-pass').value === 'metro777') changeScreen('s-admin-panel');
-    else alert('Xato!');
+function joinSessionServer() {
+    myName = document.getElementById('stu-name').value.trim();
+    sessionKey = document.getElementById('stu-key').value.trim();
+    if(!myName || !sessionKey) return alert('Ma’lumotlarni kiriting!');
+    role = 'student';
+    changeScreen('scr-stu-wait');
+    connectRealtime();
 }
 
-function joinStudent() {
-    let name = document.getElementById('stu-name').value;
-    state.players.push({name: name, status: '⏳'});
-    changeScreen('s-quiz');
-    updateUI();
+function connectRealtime() {
+    channel = supabaseClient.channel('metro-' + sessionKey, { config: { broadcast: { self: true } } });
+
+    channel.on('broadcast', { event: 'sync' }, ({ payload }) => {
+        gameStatus = payload.status;
+        gamePlayers = payload.players;
+        gameAnswers = payload.answers;
+        timeLimit = payload.timeLimit;
+
+        updateLiveBars();
+
+        // 1. Poyga holatini oldini olish: Javoblar to'liq yig'ilganda faqat bitta tranzaksiya
+        if (role === 'admin' && gameStatus.startsWith('started:') && gamePlayers.length > 0 && !isTransitioning) {
+            let currentAnswers = gameAnswers.filter(x => x.q === currentQ);
+            if (currentAnswers.length >= gamePlayers.length) {
+                isTransitioning = true;
+                gameStatus = 'showing_res';
+                broadcastState();
+                clearTimeout(transitionTimeout);
+                transitionTimeout = setTimeout(() => { nextQuizServer(); }, 2500); 
+            }
+        }
+
+        // 2. Sinxron yuklash va kech qolgan o'quvchilarni majburiy to'g'ri ekranga otish
+        if (gameStatus.startsWith('started:') || gameStatus === 'showing_res') {
+            let serverQ = parseInt(gameStatus.split(':')[1]);
+            let activeScreen = document.getElementById('scr-quiz').classList.contains('active');
+            
+            if (serverQ !== currentQ || !activeScreen) {
+                if (serverQ !== currentQ) {
+                    currentQ = serverQ;
+                    hasAnsweredCurrent = false; // Har bir yangi savolda flag aniq yangilanadi
+                }
+                loadQuestion();
+                if (gameStatus === 'showing_res') {
+                    revealCorrectAnswer();
+                }
+            }
+        } else if (gameStatus === 'finished' && currentQ !== -99) {
+            currentQ = -99;
+            clearInterval(timer);
+            clearTimeout(transitionTimeout);
+            showFinalRanking();
+        }
+    });
+
+    channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+            if (role === 'student') {
+                channel.send({ event: 'join', payload: { name: myName } });
+            } else {
+                broadcastState();
+            }
+        }
+    });
+
+    channel.on('broadcast', { event: 'join' }, ({ payload }) => {
+        if (role === 'admin') {
+            if (!gamePlayers.some(p => p.name === payload.name)) {
+                gamePlayers.push({ name: payload.name, score: 0 });
+                broadcastState();
+            }
+        }
+    });
+
+    channel.on('broadcast', { event: 'answer' }, ({ payload }) => {
+        if (role === 'admin') {
+            if (!gameAnswers.some(x => x.name === payload.name && x.q === payload.q)) {
+                gameAnswers.push({ name: payload.name, q: payload.q, isCorrect: payload.isCorrect });
+                if (payload.isCorrect) {
+                    let p = gamePlayers.find(x => x.name === payload.name);
+                    if (p) p.score += 1;
+                }
+                broadcastState();
+            }
+        }
+    });
 }
 
-function adminNext() {
-    // Sinxron holat o'zgarishi
-    alert('Keyingi savolga o\'tildi!');
-    updateUI();
+function broadcastState() {
+    if (role === 'admin' && channel) {
+        channel.send({
+            event: 'sync',
+            payload: { status: gameStatus, players: gamePlayers, answers: gameAnswers, timeLimit: timeLimit }
+        });
+    }
 }
 
-function updateUI() {
-    // Jonli panelni yangilash
-    const bar = document.getElementById('live-bar-admin');
-    bar.innerHTML = state.players.map(p => `<div class="student-chip">${p.name} ${p.status}</div>`).join('');
+function updateLiveBars() {
+    let barHtml = gamePlayers.map(p => {
+        let userAns = gameAnswers.find(x => x.name === p.name && x.q === currentQ);
+        let icon = userAns ? '⚡' : '⏳';
+        return `<div class="chip">👨‍🎓 ${p.name} <span>${icon}</span></div>`;
+    }).join('');
+    
+    ['lbar-adm-wait', 'lbar-stu-wait', 'lbar-quiz'].forEach(id => {
+        let el = document.getElementById(id);
+        if (el) el.innerHTML = barHtml;
+    });
 }
 
-// Har 1.5 soniyada holatni yangilash (Sinxronizatsiya simulyatsiyasi)
-setInterval(updateUI, 1500);
+function startQuizServer() { isTransitioning = false; gameStatus = 'started:0'; broadcastState(); }
+function nextQuizServer() {
+    isTransitioning = false;
+    let next = currentQ + 1;
+    if (next >= DATA.length) { gameStatus = 'finished'; } 
+    else { gameStatus = 'started:' + next; }
+    broadcastState();
+}
 
+function loadQuestion() {
+    changeScreen('scr-quiz');
+    document.getElementById('btn-adm-next').style.display = (role === 'admin') ? 'block' : 'none';
+    
+    let qData = DATA[currentQ];
+    document.getElementById('quiz-qnum').textContent = `Savol: ${currentQ + 1}/${DATA.length}`;
+    document.getElementById('quiz-qtext').textContent = qData.q;
+    
+    let optsDiv = document.getElementById('quiz-opts'); optsDiv.innerHTML = '';
+    qData.o.forEach((o, i) => {
+        optsDiv.innerHTML += `<button class="opt-btn" onclick="submitAnswer(${i}, this)">${o}</button>`;
+    });
+
+    let limit = timeLimit;
+    document.getElementById('quiz-timer').textContent = limit;
+    
+    clearInterval(timer);
+    timer = setInterval(() => {
+        limit--;
+        document.getElementById('quiz-timer').textContent = limit;
+        if (limit <= 0) {
+            clearInterval(timer);
+            // Faqat admin vaqt tugaganini aniqlaydi va buyruq zanjirini boshqaradi
+            if (role === 'admin' && !isTransitioning) {
+                isTransitioning = true;
+                gameStatus = 'showing_res';
+                broadcastState();
+                clearTimeout(transitionTimeout);
+                transitionTimeout = setTimeout(() => { nextQuizServer(); }, 2500);
+            }
+        }
+    }, 1000);
+}
+
+function submitAnswer(idx, btn) {
+    if (hasAnsweredCurrent || gameStatus === 'showing_res') return;
+    hasAnsweredCurrent = true;
+    
+    clearInterval(timer);
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    btn.classList.add('selected');
+    
+    let isCorrect = idx === DATA[currentQ].c;
+    if (isCorrect && role === 'student') { 
+        score++; 
+        document.getElementById('quiz-score').textContent = `Ball: ${score}`; 
+    }
+    
+    if (isCorrect) btn.classList.add('correct');
+    else { 
+        btn.classList.add('wrong'); 
+        document.querySelectorAll('.opt-btn')[DATA[currentQ].c].classList.add('correct'); 
+    }
+
+    if (role === 'student') {
+        channel.send({ event: 'answer', payload: { name: myName, q: currentQ, isCorrect: isCorrect } });
+    }
+}
+
+function revealCorrectAnswer() {
+    document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+    let correctBtn = document.querySelectorAll('.opt-btn')[DATA[currentQ].c];
+    if (correctBtn) correctBtn.classList.add('correct');
+}
+
+function showFinalRanking() {
+    changeScreen('scr-result');
+    gamePlayers.sort((a, b) => b.score - a.score);
+    let renderDiv = document.getElementById('ranking-render');
+    if (gamePlayers.length === 0) {
+        renderDiv.innerHTML = `<li>Hech qanday o'quvchi qatnashmadi.</li>`;
+    } else {
+        renderDiv.innerHTML = gamePlayers.map((p, index) => {
+            let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+            return `<li><span>${medal} ${index + 1}. ${p.name}</span> <b>${p.score} ball</b></li>`;
+        }).join('');
+    }
+}
 </script>
 </body>
 </html>
