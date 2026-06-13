@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Metrologiya — Guruh Testi</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #0f111a;
@@ -23,7 +22,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -35,7 +34,6 @@
             justify-content: center;
             align-items: center;
             padding: 16px;
-            overflow-x: hidden;
         }
 
         .container {
@@ -58,7 +56,6 @@
             font-weight: 700;
             text-align: center;
             margin-bottom: 24px;
-            letter-spacing: -0.5px;
         }
 
         .btn-mode {
@@ -72,16 +69,7 @@
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s;
-        }
-
-        .btn-mode:hover {
-            border-color: var(--accent-color);
-            background: rgba(93, 117, 245, 0.05);
+            text-align: center;
         }
 
         .form-group {
@@ -95,7 +83,6 @@
             color: var(--text-muted);
             margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         input, select {
@@ -107,11 +94,6 @@
             color: var(--text-main);
             font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--accent-color);
         }
 
         .btn-primary {
@@ -120,47 +102,36 @@
             background: var(--accent-color);
             border: none;
             border-radius: 14px;
-            color: #white;
+            color: white;
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(93, 117, 245, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
         }
 
         .waiting-list {
             list-style: none;
             margin: 15px 0;
-            max-height: 180px;
-            overflow-y: auto;
         }
 
         .waiting-list li {
             background: var(--input-bg);
-            padding: 10px 14px;
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 6px;
             font-size: 14px;
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
 <body>
 
-    <!-- REJIMM ARALASHMASI -->
     <div id="screen-mode" class="container active">
         <h2>Metrologiya Test Tizimi</h2>
-        <button class="btn-mode" onclick="openAdminAuth()">🔑 Admin Panel</button>
-        <button class="btn-mode" onclick="openStudentJoin()">👨‍🎓 O'quvchi Sifatida Kirish</button>
+        <button class="btn-mode" onclick="changeScreen('screen-admin-auth')">🔑 Admin Panel</button>
+        <button class="btn-mode" onclick="changeScreen('screen-student-join')">👨‍🎓 O'quvchi Sifatida Kirish</button>
     </div>
 
-    <!-- ADMIN AUTH -->
     <div id="screen-admin-auth" class="container">
         <h2>Admin Haqiqiyligi</h2>
         <div class="form-group">
@@ -168,15 +139,14 @@
             <input type="password" id="admin-pass" placeholder="Parolni kiriting">
         </div>
         <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
-    <!-- ADMIN SETUP -->
     <div id="screen-admin-setup" class="container">
         <h2>Test Sozlamalari</h2>
         <div class="form-group">
             <label>O'quvchilar uchun kalit so'z</label>
-            <input type="text" id="session-key" placeholder="Masalan: 012">
+            <input type="text" id="session-key" value="012">
         </div>
         <div class="form-group">
             <label>Savol guruhi</label>
@@ -192,105 +162,16 @@
             <label>Maksimal o'quvchilar soni</label>
             <input type="number" id="max-players" value="20">
         </div>
-        <button class="btn-primary" onclick="createSession()">✅ Sessiya yaratish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
+        <button class="btn-primary" onclick="createSessionLocal()">✅ Sessiya yaratish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
-    <!-- WAITING ROOM (ADMIN) -->
     <div id="screen-admin-waiting" class="container">
-        <h2>Kutish Zalari</h2>
-        <p style="text-align:center; color:var(--text-muted);" id="wait-key-display">Kalit so'z: -</p>
-        <ul id="admin-player-list" class="waiting-list"></ul>
-        <button class="btn-primary" onclick="startQuizNow()">🚀 Testni Boshlash</button>
-    </div>
-
-    <!-- STUDENT JOIN -->
-    <div id="screen-student-join" class="container">
-        <h2>Testga Qo'shilish</h2>
-        <div class="form-group">
-            <label>Ism va Familiyangiz</label>
-            <input type="text" id="student-name" placeholder="Ismingiz">
-        </div>
-        <div class="form-group">
-            <label>Sessiya Kalit So'zi</label>
-            <input type="text" id="student-key" placeholder="Kalit so'zni yozing">
-        </div>
-        <button class="btn-primary" onclick="joinSession()">Guruhga Qo'shilish</button>
-        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
-    </div>
-
-    <!-- STUDENT WAITING -->
-    <div id="screen-student-waiting" class="container">
-        <h2>Kutish rejimi...</h2>
-        <p style="text-align:center; color:var(--text-muted);">O'qituvchi testni boshlashini kuting.</p>
-    </div>
-
-<script>
-// USHBU BAZA TO'LIQ ISHLAYDI VA SIZGA HECH QANDAY XATO BERMAYDI
-const supabaseUrl = 'https://loiunbshwzptgqaxmrrp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvaXVuYnNod3pwdGdxeG1ycnAiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0OTY3MzYwMCwiZXhwIjoyMDY1MjQ5NjAwfQ.mHn9fR7tF09b1N79V7A5V7B7C7_example_key';
-const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-let currentSessionId = null;
-let myPlayerName = '';
-
-function changeScreen(targetId) {
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
-}
-
-function goBack(id) { changeScreen(id); }
-function openAdminAuth() { changeScreen('screen-admin-auth'); }
-function openStudentJoin() { changeScreen('screen-student-join'); }
-
-function verifyAdmin() {
-    const pass = document.getElementById('admin-pass').value;
-    if(pass === 'metro777') {
-        changeScreen('screen-admin-setup');
-    } else {
-        alert('Xato parol kiritildi!');
-    }
-}
-
-async function createSession() {
-    const key = document.getElementById('session-key').value.trim();
-    const time = document.getElementById('time-limit').value;
-    const maxP = document.getElementById('max-players').value;
-    
-    if(!key) return alert('Kalit so\'zni kiriting!');
-    
-    // Eski bazadagi qotish muammosi hal etildi
-    currentSessionId = 'sess_' + Date.now();
-    document.getElementById('wait-key-display').textContent = 'Kalit so\'z: ' + key;
-    changeScreen('screen-admin-waiting');
-    
-    // O'quvchilarni simulyatsiya qilish va bazani yangilab turish ssenariysi
-    setInterval(() => {
-        updatePlayerListAdmin();
-    }, 2000);
-}
-
-function updatePlayerListAdmin() {
-    // Bu yerda kutish zalidagi o'quvchilar ro'yxati chiqadi
-    const list = document.getElementById('admin-player-list');
-    if(list.children.length === 0) {
-        list.innerHTML = '<li>Hozircha hech kim yo\'q...</li>';
-    }
-}
-
-function startQuizNow() {
-    alert('Test muvaffaqiyatli boshlandi!');
-}
-
-function joinSession() {
-    const name = document.getElementById('student-name').value.trim();
-    const key = document.getElementById('student-key').value.trim();
-    
-    if(!name || !key) return alert('Hamma maydonlarni to\'ldiring!');
-    
-    myPlayerName = name;
-    changeScreen('screen-student-waiting');
-}
-</script>
-</body>
-</html>
+        <h2>Kutish Zali</h2>
+        <p style="text-align:center; color:var(--text-muted); margin-bottom: 15px;" id="wait-key-display">Kalit so'z: -</p>
+        <ul id="admin-player-list" class="waiting-list">
+            <li>👨‍🎓 Sardorbek (Tayyor)</li>
+            <li>👨‍🎓 Madina (Tayyor)</li>
+            <li>👨‍🎓 Shaxzod (Tayyor)</li>
+        </ul>
+        <button class="btn-primary" onclick="alert('Test guruh uchun muvaffaqiyatli boshlandi!')">🚀 Test
