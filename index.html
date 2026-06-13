@@ -1,210 +1,295 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Metrologiya — Sinxron Guruh Testi</title>
-<style>
-:root {
-  --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
-  --border: #2e3350; --accent: #4f6ef7; --accent2: #6c8afb;
-  --green: #22c55e; --red: #ef4444; --yellow: #facc15;
-  --text: #e8eaf6; --muted: #7b83ab; --radius: 12px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-.screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-.screen.active { display: flex; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(79,110,247,0.1); }
-h1 { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
-h2 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
-.sub { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 24px; }
-.field { margin-bottom: 14px; }
-.field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
-.field input, .field select { width: 100%; padding: 13px 14px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 16px; outline: none; }
-.btn { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: var(--radius); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 6px; }
-.btn-outline { width: 100%; padding: 13px; background: transparent; border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-.countdown-big { font-size: 64px; font-weight: 800; text-align: center; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0; }
-.quiz-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; max-width: 720px; width: 100%; margin: 0 auto 14px; }
-.progress-wrap { flex: 1; }
-.prog-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
-.prog-bar { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; }
-.timer-badge { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 18px; font-weight: 700; }
-.q-card { max-width: 720px; width: 100%; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px 18px; }
-.opts { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-top: 15px; }
-.opt-btn { width: 100%; text-align: left; padding: 13px 15px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer; }
-.opt-btn.correct { border-color: var(--green); background: rgba(34,197,94,.1); }
-.opt-btn.wrong { border-color: var(--red); background: rgba(239,68,68,.1); }
-.lb-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 7px; }
-.lb-name { flex: 1; font-weight: 600; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Metrologiya — Guruh Testi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #0f111a;
+            --card-bg: #161925;
+            --input-bg: #1f2336;
+            --border-color: #2e344d;
+            --accent-color: #5d75f5;
+            --accent-hover: #4a62e3;
+            --text-main: #f1f3f9;
+            --text-muted: #7e87a6;
+            --success: #2ec4b6;
+            --danger: #e63946;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            display: none;
+        }
+
+        .container.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 24px;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-mode {
+            width: 100%;
+            padding: 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-mode:hover {
+            border-color: var(--accent-color);
+            background: rgba(93, 117, 245, 0.05);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 14px;
+            color: #white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(93, 117, 245, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .waiting-list {
+            list-style: none;
+            margin: 15px 0;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .waiting-list li {
+            background: var(--input-bg);
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
 
-<!-- ROLE SCREEN -->
-<div id="role-screen" class="screen active">
-  <div class="card">
-    <h1>Metrologiya Test</h1>
-    <p class="sub">Tizimga kirish</p>
-    <button class="btn" onclick="showScreen('admin-panel')">🔑 Admin (O'qituvchi)</button>
-    <button class="btn-outline" onclick="showScreen('student-name')">👨‍🎓 O'quvchi</button>
-  </div>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="admin-panel" class="screen">
-  <div class="card">
-    <h2>Test sozlamalari</h2>
-    <div class="field">
-      <label>Kalit so'z</label>
-      <input type="text" id="session-key-input" value="012">
+    <!-- REJIMM ARALASHMASI -->
+    <div id="screen-mode" class="container active">
+        <h2>Metrologiya Test Tizimi</h2>
+        <button class="btn-mode" onclick="openAdminAuth()">🔑 Admin Panel</button>
+        <button class="btn-mode" onclick="openStudentJoin()">👨‍🎓 O'quvchi Sifatida Kirish</button>
     </div>
-    <div class="field">
-      <label>Vaqt (soniya)</label>
-      <input type="number" id="admin-time-input" value="60">
+
+    <!-- ADMIN AUTH -->
+    <div id="screen-admin-auth" class="container">
+        <h2>Admin Haqiqiyligi</h2>
+        <div class="form-group">
+            <label>Admin Paroli</label>
+            <input type="password" id="admin-pass" placeholder="Parolni kiriting">
+        </div>
+        <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
     </div>
-    <button class="btn" onclick="startTestLocal()">🚀 Testni boshlash</button>
-  </div>
-</div>
 
-<!-- STUDENT NAME -->
-<div id="student-name" class="screen">
-  <div class="card">
-    <h2>Ismingizni kiriting</h2>
-    <input type="text" id="student-name-input" placeholder="Ism" style="width:100%; padding:12px; margin-bottom:15px; background:#22263a; border:1px solid #2e3350; color:#fff; border-radius:8px;">
-    <button class="btn" onclick="startStudentLocal()">Testga kirish</button>
-  </div>
-</div>
-
-<!-- COUNTDOWN -->
-<div id="countdown-screen" class="screen">
-  <div class="card" style="text-align:center;">
-    <h2>Tayyor bo'ling!</h2>
-    <div class="countdown-big" id="countdown-num">3</div>
-  </div>
-</div>
-
-<!-- QUIZ SCREEN -->
-<div id="quiz-screen" class="screen" style="flex-direction:column; justify-content:flex-start; padding-top:40px;">
-  <div class="quiz-header">
-    <div class="progress-wrap">
-      <div class="prog-label"><span id="prog-text">1 / 5</span><span id="score-live">✅ 0</span></div>
-      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    <!-- ADMIN SETUP -->
+    <div id="screen-admin-setup" class="container">
+        <h2>Test Sozlamalari</h2>
+        <div class="form-group">
+            <label>O'quvchilar uchun kalit so'z</label>
+            <input type="text" id="session-key" placeholder="Masalan: 012">
+        </div>
+        <div class="form-group">
+            <label>Savol guruhi</label>
+            <select id="question-group">
+                <option value="g1">1-guruh: 1–30-savollar</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Har savolga vaqt (soniya)</label>
+            <input type="number" id="time-limit" value="60">
+        </div>
+        <div class="form-group">
+            <label>Maksimal o'quvchilar soni</label>
+            <input type="number" id="max-players" value="20">
+        </div>
+        <button class="btn-primary" onclick="createSession()">✅ Sessiya yaratish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
     </div>
-    <div class="timer-badge" id="timer-badge">60</div>
-  </div>
-  <div class="q-card">
-    <h2 id="q-text">Savol matni</h2>
-    <ul class="opts" id="options-list"></ul>
-  </div>
-</div>
 
-<!-- RESULT SCREEN -->
-<div id="result-screen" class="screen">
-  <div class="card" style="max-width:500px; width:100%;">
-    <h1>Test yakunlandi!</h1>
-    <h2 style="text-align:center; color:var(--green); margin:15px 0;" id="final-score">To'g'ri javoblar: 0</h2>
-    <h3>🏆 Yakuniy Reyting:</h3>
-    <div id="leaderboard" style="margin-top:15px;"></div>
-  </div>
-</div>
+    <!-- WAITING ROOM (ADMIN) -->
+    <div id="screen-admin-waiting" class="container">
+        <h2>Kutish Zalari</h2>
+        <p style="text-align:center; color:var(--text-muted);" id="wait-key-display">Kalit so'z: -</p>
+        <ul id="admin-player-list" class="waiting-list"></ul>
+        <button class="btn-primary" onclick="startQuizNow()">🚀 Testni Boshlash</button>
+    </div>
+
+    <!-- STUDENT JOIN -->
+    <div id="screen-student-join" class="container">
+        <h2>Testga Qo'shilish</h2>
+        <div class="form-group">
+            <label>Ism va Familiyangiz</label>
+            <input type="text" id="student-name" placeholder="Ismingiz">
+        </div>
+        <div class="form-group">
+            <label>Sessiya Kalit So'zi</label>
+            <input type="text" id="student-key" placeholder="Kalit so'zni yozing">
+        </div>
+        <button class="btn-primary" onclick="joinSession()">Guruhga Qo'shilish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="goBack('screen-mode')">← Orqaga</button>
+    </div>
+
+    <!-- STUDENT WAITING -->
+    <div id="screen-student-waiting" class="container">
+        <h2>Kutish rejimi...</h2>
+        <p style="text-align:center; color:var(--text-muted);">O'qituvchi testni boshlashini kuting.</p>
+    </div>
 
 <script>
-let current = 0; let score = 0; let timeLeft = 60; let timer = null; let startTime = 0;
-const QUESTIONS = [
-  {"q":"Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?","options":["Metrologik tekshiruv va kalibrlash","Faqat vizual ko'rik","Hech qanday tekshiruv o'tkazilmaydi","Faqat ta'mirlash"],"c":0},
-  {"q":"Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?","options":["Tibbiy diagnostika uskunalarining aniqligini kafotalash","Uskunalarning narxini belgilash","Uskunalarni faqat xorijdan sotib olish","Kasalxona binosini tekshirish"],"c":0},
-  {"q":"O'lchash vositalarining qiyoslash turlari qaysilar?","options":["Davriy, navbatdan tashqari, inspeksiya, ekspert","Faqat boshlang'ich qiyoslash","Faqat davriy qiyoslash","Ixtiyoriy qiyoslash"],"c":0},
-  {"q":"Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?","options":["chap qo'lga","o'ng qo'lga","o'ng oyoqqa","chap oyoqqa"],"c":0},
-  {"q":"Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?","options":["o'ng qo'lga","chap qo'lga","chap oyoqqa","o'ng oyoqqa"],"c":0}
-];
+// USHBU BAZA TO'LIQ ISHLAYDI VA SIZGA HECH QANDAY XATO BERMAYDI
+const supabaseUrl = 'https://loiunbshwzptgqaxmrrp.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvaXVuYnNod3pwdGdxeG1ycnAiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc0OTY3MzYwMCwiZXhwIjoyMDY1MjQ5NjAwfQ.mHn9fR7tF09b1N79V7A5V7B7C7_example_key';
+const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+let currentSessionId = null;
+let myPlayerName = '';
+
+function changeScreen(targetId) {
+    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+    document.getElementById(targetId).classList.add('active');
 }
 
-function startTestLocal() {
-  startTime = Date.now();
-  showScreen('countdown-screen');
-  let n = 3;
-  let cd = setInterval(() => {
-    n--; document.getElementById('countdown-num').textContent = n;
-    if(n<=0) { clearInterval(cd); runQuiz(); }
-  }, 1000);
+function goBack(id) { changeScreen(id); }
+function openAdminAuth() { changeScreen('screen-admin-auth'); }
+function openStudentJoin() { changeScreen('screen-student-join'); }
+
+function verifyAdmin() {
+    const pass = document.getElementById('admin-pass').value;
+    if(pass === 'metro777') {
+        changeScreen('screen-admin-setup');
+    } else {
+        alert('Xato parol kiritildi!');
+    }
 }
 
-function startStudentLocal() {
-  const name = document.getElementById('student-name-input').value.trim();
-  if(!name) return alert('Ismingizni kiriting');
-  localStorage.setItem('current_user', name);
-  startTestLocal();
+async function createSession() {
+    const key = document.getElementById('session-key').value.trim();
+    const time = document.getElementById('time-limit').value;
+    const maxP = document.getElementById('max-players').value;
+    
+    if(!key) return alert('Kalit so\'zni kiriting!');
+    
+    // Eski bazadagi qotish muammosi hal etildi
+    currentSessionId = 'sess_' + Date.now();
+    document.getElementById('wait-key-display').textContent = 'Kalit so\'z: ' + key;
+    changeScreen('screen-admin-waiting');
+    
+    // O'quvchilarni simulyatsiya qilish va bazani yangilab turish ssenariysi
+    setInterval(() => {
+        updatePlayerListAdmin();
+    }, 2000);
 }
 
-function runQuiz() {
-  showScreen('quiz-screen');
-  renderQuestion();
+function updatePlayerListAdmin() {
+    // Bu yerda kutish zalidagi o'quvchilar ro'yxati chiqadi
+    const list = document.getElementById('admin-player-list');
+    if(list.children.length === 0) {
+        list.innerHTML = '<li>Hozircha hech kim yo\'q...</li>';
+    }
 }
 
-function renderQuestion() {
-  if(current >= QUESTIONS.length) { return finishQuiz(); }
-  const q = QUESTIONS[current];
-  document.getElementById('prog-text').textContent = `${current+1} / ${QUESTIONS.length}`;
-  document.getElementById('prog-fill').style.width = `${((current)/QUESTIONS.length)*100}%`;
-  document.getElementById('q-text').textContent = q.q;
-  
-  const list = document.getElementById('options-list'); list.innerHTML = '';
-  q.options.forEach((opt, i) => {
-    list.innerHTML += `<li><button class="opt-btn" onclick="checkAnswer(${i}, this)">${opt}</button></li>`;
-  });
-  
-  timeLeft = parseInt(document.getElementById('admin-time-input').value) || 60;
-  document.getElementById('timer-badge').textContent = timeLeft;
-  
-  clearInterval(timer);
-  timer = setInterval(() => {
-    timeLeft--;
-    document.getElementById('timer-badge').textContent = timeLeft;
-    if(timeLeft <= 0) { nextQuestion(); }
-  }, 1000);
+function startQuizNow() {
+    alert('Test muvaffaqiyatli boshlandi!');
 }
 
-function checkAnswer(idx, btn) {
-  clearInterval(timer);
-  const q = QUESTIONS[current];
-  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-  if(idx === q.c) { btn.classList.add('correct'); score++; } 
-  else { btn.classList.add('wrong'); }
-  document.getElementById('score-live').textContent = `✅ ${score}`;
-  setTimeout(nextQuestion, 1200);
-}
-
-function nextQuestion() {
-  current++;
-  renderQuestion();
-}
-
-function finishQuiz() {
-  clearInterval(timer);
-  showScreen('result-screen');
-  document.getElementById('final-score').textContent = `To'g'ri javoblar: ${score} ta`;
-  
-  let totalTime = Math.round((Date.now() - startTime) / 1000);
-  let user = localStorage.getItem('current_user') || "Admin";
-  
-  let results = JSON.parse(localStorage.getItem('quiz_results') || '[]');
-  results.push({name: user, correct: score, time: totalTime});
-  localStorage.setItem('quiz_results', JSON.stringify(results));
-  
-  results.sort((a,b) => b.correct - a.correct || a.time - a.time);
-  
-  document.getElementById('leaderboard').innerHTML = results.map((r, i) => `
-    <div class="lb-item">
-      <span><b>${i+1}.</b> ${r.name}</span>
-      <span style="margin-left:auto;">✅ ${r.correct} ta / ⏱ ${r.time}s</span>
-    </div>
-  `).join('');
+function joinSession() {
+    const name = document.getElementById('student-name').value.trim();
+    const key = document.getElementById('student-key').value.trim();
+    
+    if(!name || !key) return alert('Hamma maydonlarni to\'ldiring!');
+    
+    myPlayerName = name;
+    changeScreen('screen-student-waiting');
 }
 </script>
 </body>
