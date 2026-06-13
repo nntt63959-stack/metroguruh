@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metrologiya — Guruh Testi</title>
     <style>
         :root {
@@ -11,21 +11,10 @@
             --input-bg: #1f2336;
             --border-color: #2e344d;
             --accent-color: #5d75f5;
-            --accent-hover: #4a62e3;
             --text-main: #f1f3f9;
             --text-muted: #7e87a6;
-            --success: #2ec4b6;
-            --danger: #e63946;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -35,7 +24,6 @@
             align-items: center;
             padding: 16px;
         }
-
         .container {
             width: 100%;
             max-width: 440px;
@@ -43,95 +31,39 @@
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 32px 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             display: none;
         }
-
-        .container.active {
-            display: block;
-        }
-
-        h2 {
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
+        .container.active { display: block; }
+        h2 { text-align: center; margin-bottom: 24px; }
         .btn-mode {
-            width: 100%;
-            padding: 16px;
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            color: var(--text-main);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 12px;
-            text-align: center;
+            width: 100%; padding: 16px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 16px;
+            color: var(--text-main); font-size: 16px; cursor: pointer; margin-bottom: 12px;
         }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
         input, select {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            color: var(--text-main);
-            font-size: 16px;
-            outline: none;
+            width: 100%; padding: 14px 16px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 14px; color: var(--text-main); font-size: 16px;
         }
-
         .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: var(--accent-color);
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
+            width: 100%; padding: 16px; background: var(--accent-color);
+            border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 700; cursor: pointer;
         }
-
-        .waiting-list {
-            list-style: none;
-            margin: 15px 0;
-        }
-
-        .waiting-list li {
-            background: var(--input-bg);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-        }
+        .waiting-list { list-style: none; margin: 15px 0; }
+        .waiting-list li { background: var(--input-bg); padding: 12px; border-radius: 8px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
 
+    <!-- 1. BOSH SAHIFA (REJIMLAR) -->
     <div id="screen-mode" class="container active">
         <h2>Metrologiya Test Tizimi</h2>
         <button class="btn-mode" onclick="changeScreen('screen-admin-auth')">🔑 Admin Panel</button>
         <button class="btn-mode" onclick="changeScreen('screen-student-join')">👨‍🎓 O'quvchi Sifatida Kirish</button>
     </div>
 
+    <!-- 2. ADMIN PAROL SOHASI -->
     <div id="screen-admin-auth" class="container">
         <h2>Admin Haqiqiyligi</h2>
         <div class="form-group">
@@ -142,6 +74,7 @@
         <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
+    <!-- 3. ADMIN SOZLAMALARI -->
     <div id="screen-admin-setup" class="container">
         <h2>Test Sozlamalari</h2>
         <div class="form-group">
@@ -158,20 +91,59 @@
             <label>Har savolga vaqt (soniya)</label>
             <input type="number" id="time-limit" value="60">
         </div>
-        <div class="form-group">
-            <label>Maksimal o'quvchilar soni</label>
-            <input type="number" id="max-players" value="20">
-        </div>
-        <button class="btn-primary" onclick="createSessionLocal()">✅ Sessiya yaratish</button>
+        <button class="btn-primary" onclick="changeScreen('screen-admin-waiting')">✅ Sessiya yaratish</button>
         <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
+    <!-- 4. KUTISH ZALI -->
     <div id="screen-admin-waiting" class="container">
         <h2>Kutish Zali</h2>
-        <p style="text-align:center; color:var(--text-muted); margin-bottom: 15px;" id="wait-key-display">Kalit so'z: -</p>
-        <ul id="admin-player-list" class="waiting-list">
+        <br>
+        <ul class="waiting-list">
             <li>👨‍🎓 Sardorbek (Tayyor)</li>
             <li>👨‍🎓 Madina (Tayyor)</li>
             <li>👨‍🎓 Shaxzod (Tayyor)</li>
         </ul>
-        <button class="btn-primary" onclick="alert('Test guruh uchun muvaffaqiyatli boshlandi!')">🚀 Test
+        <button class="btn-primary" onclick="alert('Test muvaffaqiyatli boshlandi!')">🚀 Testni Boshlash</button>
+    </div>
+
+    <!-- 5. O'QUVCHI KIRISH SOHASI -->
+    <div id="screen-student-join" class="container">
+        <h2>Testga Qo'shilish</h2>
+        <div class="form-group">
+            <label>Ism va Familiyangiz</label>
+            <input type="text" id="student-name" placeholder="Ismingiz">
+        </div>
+        <div class="form-group">
+            <label>Sessiya Kalit So'zi</label>
+            <input type="text" id="student-key" placeholder="Kalit so'zni yozing">
+        </div>
+        <button class="btn-primary" onclick="changeScreen('screen-student-waiting')">Guruhga Qo'shilish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
+    </div>
+
+    <!-- 6. O'QUVCHI KUTISH SOHASI -->
+    <div id="screen-student-waiting" class="container">
+        <h2>Kutish rejimi...</h2>
+        <p style="text-align:center; color:var(--text-muted); margin-top:15px;">O'qituvchi testni boshlashini kuting.</p>
+    </div>
+
+<script>
+function changeScreen(targetId) {
+    // Hamma sahifalarni yopish
+    document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+    // Faqat keraklisini ochish
+    document.getElementById(targetId).style.display = 'block';
+}
+
+function verifyAdmin() {
+    const pass = document.getElementById('admin-pass').value;
+    if(pass === 'metro777') {
+        changeScreen('screen-admin-setup');
+    } else {
+        alert('Xato parol kiritildi! To\'g\'ri parol: metro777');
+    }
+}
+</script>
+</body>
+</html>
