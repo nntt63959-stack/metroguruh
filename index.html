@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Metrologiya — Sinxron Guruh Testi</title>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+  --border: #2e3350; --accent: #4f6ef7; --accent2: #6c8afb;
+  --green: #22c55e; --red: #ef4444; --yellow: #facc15;
+  --text: #e8eaf6; --muted: #7b83ab; --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; padding-bottom: env(safe-area-inset-bottom);
+}
+.screen { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.screen.active { display: flex; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 420px;
+  box-shadow: 0 20px 60px rgba(79,110,247,0.1);
+}
+.logo { font-size: 44px; text-align: center; margin-bottom: 14px; }
+h1 { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+h2 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.sub { color: var(--muted); font-size: 13px; text-align: center; margin-bottom: 24px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+.field input, .field select {
+  width: 100%; padding: 13px 14px; background: var(--surface2);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-size: 16px; outline: none; font-family: inherit;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.btn {
+  width: 100%; padding: 15px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: var(--radius); color: #fff; font-size: 16px;
+  font-weight: 700; cursor: pointer; min-height: 52px; margin-top: 6px;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+.btn-outline {
+  width: 100%; padding: 13px; background: transparent;
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--muted); font-size: 14px; font-weight: 600; cursor: pointer; min-height: 48px; margin-top: 8px;
+}
+.btn-outline:active { background: var(--surface2); }
+.tag { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+.tag.admin { border-color: var(--accent); color: var(--accent2); }
+.tag.student { border-color: var(--green); color: var(--green); }
+
+/* WAITING SCREEN */
+.waiting-box { text-align: center; }
+.waiting-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.waiting-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.session-info { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 20px; text-align: left; }
+.session-info .si-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.session-info .si-row:last-child { margin-bottom: 0; }
+.session-info .si-label { color: var(--muted); }
+.session-info .si-val { font-weight: 700; }
+.players-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.player-chip { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 99px; padding: 8px 14px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.player-chip.me { border-color: var(--accent); color: var(--accent2); }
+.player-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.countdown-big { font-size: 64px; font-weight: 800; text-align: center; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0; }
+
+/* QUIZ */
+#quiz-screen { display: none; flex-direction: column; padding: 14px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.quiz-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; max-width: 720px; width: 100%; margin-left: auto; margin-right: auto; }
+.progress-wrap { flex: 1; }
+.prog-label { font-size: 12px; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+.prog-bar { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .4s; }
+.timer-badge { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 12px; font-size: 18px; font-weight: 700; min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; }
+.timer-badge.urgent { color: var(--red); border-color: var(--red); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.q-card { max-width: 720px; width: 100%; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px 18px; }
+.q-num { font-size: 11px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+.q-text { font-size: 15px; line-height: 1.65; margin-bottom: 20px; font-weight: 500; }
+.opts { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.opt-btn { width: 100%; text-align: left; padding: 13px 15px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; min-height: 50px; }
+.opt-btn:hover:not(:disabled) { border-color: var(--accent); background: rgba(79,110,247,.08); }
+.opt-letter { min-width: 24px; height: 24px; border-radius: 6px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.opt-btn.correct { border-color: var(--green); background: rgba(34,197,94,.1); }
+.opt-btn.correct .opt-letter { background: var(--green); color: #fff; }
+.opt-btn.wrong { border-color: var(--red); background: rgba(239,68,68,.1); }
+.opt-btn.wrong .opt-letter { background: var(--red); color: #fff; }
+.opt-btn:disabled { cursor: default; }
+
+/* Live answers bar */
+.live-bar { max-width: 720px; width: 100%; margin: 10px auto 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; }
+.live-bar-title { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.live-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.live-chip { font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 99px; border: 1.5px solid var(--border); background: var(--surface2); color: var(--muted); }
+.live-chip.answered { border-color: var(--accent); color: var(--accent2); background: rgba(79,110,247,.05); }
+.live-chip.correct { border-color: var(--green); color: var(--green); background: rgba(34,197,94,.1); }
+.live-chip.wrong { border-color: var(--red); color: var(--red); background: rgba(239,68,68,.1); }
+
+.nav-row { max-width: 720px; width: 100%; margin: 12px auto 0; display: flex; justify-content: flex-end; }
+.next-btn { padding: 11px 26px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; display: none; min-height: 46px; }
+
+/* RESULT */
+#result-screen { display: none; flex-direction: column; align-items: center; padding: 20px 16px; padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 18px; width: 100%; max-width: 720px; }
+.big-pct { font-size: 64px; font-weight: 800; text-align: center; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.result-sub { text-align: center; color: var(--muted); font-size: 14px; margin-top: 6px; margin-bottom: 22px; }
+.stats-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.stat { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 8px; text-align: center; }
+.stat .v { font-size: 22px; font-weight: 700; }
+.stat .v.g { color: var(--green); } .stat .v.r { color: var(--red); } .stat .v.y { color: var(--yellow); }
+.stat .l { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+.lb-title { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.lb-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 7px; }
+.lb-item.me { border-color: var(--accent); background: rgba(79,110,247,.07); }
+.lb-rank { font-size: 18px; min-width: 26px; text-align: center; font-weight: 800; }
+.lb-name { flex: 1; font-weight: 600; font-size: 14px; }
+.lb-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.lb-score { font-size: 16px; font-weight: 800; text-align: right; }
+.lb-score span { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+
+.toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: 99px; padding: 10px 20px; font-size: 13px; color: var(--muted); display: none; white-space: nowrap; z-index: 100; }
+.admin-badge { background: rgba(79,110,247,.15); border: 1px solid var(--accent); color: var(--accent2); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: ROLE -->
+<div id="role-screen" class="screen active">
+  <div class="card">
+    <div class="logo">📐</div>
+    <h1>Metrologiya Test</h1>
+    <p class="sub">Siz kim sifatida kirasiz?</p>
+    <button class="btn" onclick="showScreen('admin-login')">🔑 Admin (o'qituvchi)</button>
+    <button class="btn-outline" onclick="showScreen('student-name')">👨‍🎓 O'quvchi sifatida kirish</button>
+  </div>
+</div>
+
+<!-- SCREEN 2: ADMIN LOGIN -->
+<div id="admin-login" class="screen">
+  <div class="card">
+    <div class="tag admin" style="margin-bottom:16px;">🔑 Admin kirish</div>
+    <h2>Admin paroli</h2>
+    <div class="field">
+      <label>Parol</label>
+      <input type="password" id="admin-pass-input" placeholder="Admin paroli" autocomplete="off">
+    </div>
+    <button class="btn" onclick="adminLogin()">Kirish →</button>
+    <button class="btn-outline" onclick="showScreen('role-screen')">← Orqaga</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: ADMIN PANEL -->
+<div id="admin-panel" class="screen">
+  <div class="card">
+    <div class="admin-badge">🔑 Admin panel</div>
+    <h2>Test sozlamalari</h2>
+    <div class="field">
+      <label>O'quvchilar uchun kalit so'z</label>
+      <input type="text" id="session-key-input" placeholder="mas: metro2025" autocomplete="off" maxlength="20">
+    </div>
+    <div class="field">
+      <label>Savol guruhi</label>
+      <select id="admin-group-input">
+        <option value="0,30">1-guruh: 1–30-savollar</option>
+        <option value="30,60">2-guruh: 31–60-savollar</option>
+        <option value="60,90">3-guruh: 61–90-savollar</option>
+        <option value="random">🎲 Tasodifiy (barcha)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Har savolga vaqt (soniya)</label>
+      <input type="number" id="admin-time-input" min="10" max="300" value="60">
+    </div>
+    <div class="field">
+      <label>Maksimal o'quvchilar soni</label>
+      <input type="number" id="admin-maxplayers" min="2" max="50" value="20">
+    </div>
+    <button class="btn" onclick="adminCreateSession()">✅ Sessiya yaratish</button>
+    <button class="btn-outline" onclick="showScreen('role-screen')">← Orqaga</button>
+  </div>
+</div>
+
+<!-- SCREEN 4: ADMIN WAITING -->
+<div id="admin-waiting" class="screen">
+  <div class="card">
+    <div class="admin-badge">🔑 Admin — Kutish zali</div>
+    <div class="waiting-box">
+      <div class="waiting-title">O'quvchilar kutilmoqda</div>
+      <div class="waiting-sub">Kalit so'zni o'quvchilarga yuboring</div>
+      <div class="session-info">
+        <div class="si-row"><span class="si-label">🔑 Kalit so'z</span><span class="si-val" id="aw-key">—</span></div>
+        <div class="si-row"><span class="si-label">📚 Guruh</span><span class="si-val" id="aw-group">—</span></div>
+        <div class="si-row"><span class="si-label">⏱ Vaqt/savol</span><span class="si-val" id="aw-time">—</span></div>
+        <div class="si-row"><span class="si-label">👥 Ulangan</span><span class="si-val" id="aw-count">0</span></div>
+      </div>
+      <div class="lb-title">👥 Kirgan o'quvchilar</div>
+      <div class="players-grid" id="aw-players"></div>
+      <button class="btn" onclick="adminStartTest()" id="admin-start-btn">🚀 Testni boshlash</button>
+      <button class="btn-outline" onclick="adminCancel()">❌ Bekor qilish</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: STUDENT NAME -->
+<div id="student-name" class="screen">
+  <div class="card">
+    <div class="tag student" style="margin-bottom:16px;">👨‍🎓 O'quvchi</div>
+    <h2>Ismingizni kiriting</h2>
+    <div class="field">
+      <input type="text" id="student-name-input" placeholder="Ismingiz" maxlength="30" autocomplete="off">
+    </div>
+    <button class="btn" onclick="goStudentKey()">Davom etish →</button>
+    <button class="btn-outline" onclick="showScreen('role-screen')">← Orqaga</button>
+  </div>
+</div>
+
+<!-- SCREEN 6: STUDENT KEY -->
+<div id="student-key" class="screen">
+  <div class="card">
+    <div class="tag student" style="margin-bottom:16px;">👨‍🎓 O'quvchi</div>
+    <h2>Kalit so'z</h2>
+    <div class="field">
+      <input type="text" id="student-key-input" placeholder="Kalit so'z" autocomplete="off">
+    </div>
+    <button class="btn" onclick="studentJoin()">Kirish →</button>
+    <button class="btn-outline" onclick="showScreen('student-name')">← Orqaga</button>
+  </div>
+</div>
+
+<!-- SCREEN 7: STUDENT WAITING -->
+<div id="student-waiting" class="screen">
+  <div class="card">
+    <div class="tag student" style="margin-bottom:16px;">👨‍🎓 Kutish zali</div>
+    <div class="waiting-box">
+      <div class="waiting-title">Admin testni boshlaguncha kuting</div>
+      <div class="session-info">
+        <div class="si-row"><span class="si-label">📚 Guruh</span><span class="si-val" id="sw-group">—</span></div>
+        <div class="si-row"><span class="si-label">⏱ Vaqt/savol</span><span class="si-val" id="sw-time">—</span></div>
+        <div class="si-row"><span class="si-label">👥 Ulangan</span><span class="si-val" id="sw-count">—</span></div>
+      </div>
+      <div class="lb-title">👥 Qatnashchilar</div>
+      <div class="players-grid" id="sw-players"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 8: COUNTDOWN -->
+<div id="countdown-screen" class="screen">
+  <div class="card" style="text-align:center;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Test boshlanmoqda!</div>
+    <div class="countdown-big" id="countdown-num">3</div>
+    <div style="color:var(--muted);font-size:14px;">Tayyor bo'ling...</div>
+  </div>
+</div>
+
+<!-- SCREEN 9: QUIZ SCREEN -->
+<div id="quiz-screen">
+  <div class="quiz-header">
+    <div class="progress-wrap">
+      <div class="prog-label">
+        <span id="prog-text">1 / 30</span>
+        <span id="score-live">✅ 0 &nbsp; ❌ 0</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="timer-badge" id="timer-badge">60</div>
+  </div>
+  <div class="q-card">
+    <div class="q-num" id="q-number">Savol 1</div>
+    <div class="q-text" id="q-text"></div>
+    <ul class="opts" id="options-list"></ul>
+  </div>
+  <div class="live-bar">
+    <div class="live-bar-title">⚡ Jonli natijalar (<span id="answered-count">0</span>/<span id="total-players-count">0</span>)</div>
+    <div class="live-chips" id="live-chips"></div>
+  </div>
+  <div class="nav-row">
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Keyingi ▶</button>
+  </div>
+</div>
+
+<!-- SCREEN 10: RESULT SCREEN -->
+<div id="result-screen">
+  <div class="result-card">
+    <div class="big-pct" id="big-score">0%</div>
+    <div class="result-sub" id="score-label">Natijangiz</div>
+    <div class="stats-row">
+      <div class="stat"><div class="v g" id="r-correct">0</div><div class="l">To'g'ri</div></div>
+      <div class="stat"><div class="v r" id="r-wrong">0</div><div class="l">Noto'g'ri</div></div>
+      <div class="stat"><div class="v y" id="r-skipped">0</div><div class="l">Vaqt tugadi</div></div>
+      <div class="stat"><div class="v" id="r-total">0</div><div class="l">Jami</div></div>
+    </div>
+    <div class="lb-title">🏆 Guruh Yakuniy Reytingi (To'g'ri va Vaqt bo'yicha)</div>
+    <div id="session-lb"></div>
+    <button class="btn" style="margin-top:16px;" onclick="showScreen('role-screen')">🔄 Bosh sahifa</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== CONFIG & DATA =====================
+const ADMIN_PASSWORD = "admin2025"; 
+const SUPABASE_URL = 'https://codypibnvopnregnlqjk.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvZHlwaWBudm9wbnJlZ25scWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNDU2MTcsImV4cCI6MjA5NjkyMTYxN30.9ME1gljsSs_AzTHeig5HcqCcPU_2mtfgYqs1_9mmjNE';
+
+let userName = ''; let isAdmin = false; let sessionKey = ''; let sessionData = null; 
+let quiz = []; let current = 0; let score = 0; let wrong = 0; let skipped = 0;
+let perTime = 60; let timer = null; let timeLeft = 0; let answered = false;
+let totalElapsedSeconds = 0; let singleQuestionTimer = null; let pollInterval = null;
+const LETTERS = ['A','B','D','E'];
+
+const QUESTIONS = [
+  {"q":"Tibbiy texnika vositalarining ishlash samaradorligini va xavfsizligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?","options":["Metrologik tekshiruv va kalibrlash","Faqat vizual ko'rik","Hech qanday tekshiruv o'tkazilmaydi","Faqat ta'mirlash"]},
+  {"q":"Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?","options":["Tibbiy diagnostika va davolash uskunalarining aniqligini kafolatlash","Uskunalarning narxini belgilash","Uskunalarni faqat xorijdan sotib olish","Kasalxona binosini tekshirish"]},
+  {"q":"O'lchash vositalarining qiyoslash turlari qaysilar?","options":["Davriy, navbatdan tashqari, inspeksiya, ekspert","Faqat boshlang'ich qiyoslash","Faqat davriy qiyoslash","Ixtiyoriy qiyoslash"]},
+  {"q":"Davriy qiyoslash nima?","options":["Ishlatilayotgan o'lchash vositalarini muayyan vaqt oralig'ida tekshirish","Faqat yangi uskunani tekshirish","Ta'mirdan chiqqan uskunani tekshirish","Sifatsiz uskunani yo'q qilish"]},
+  {"q":"Navbatdan tashqari qiyoslash qanday hollarda o'tkaziladi?","options":["Uskuna shikastlanganda, sozlamalari buzilganda yoki qiyoslash sertifikati yo'qolganda","Har oy boshida ixtiyoriy ravishda","Faqat vazir buyrug'i bilan","Faqat yangi yil bayramidan keyin"]},
+  {"q":"Elektrokardiograf qurilmalarida tarmoq kabelining klemmalari ranglar bo'yicha ajratilgan: sariq elektrod qaysi qo'lga yoki oyoqqa ulanadi?","options":["chap qo'lga;","o'ng qo'lga;","o'ng oyoqga;","chap oyoqga."]},
+  {"q":"Elektrokardiograf qurilmalarida tarmoq kabelining klemmalari ranglar bo'yicha ajratilgan: qizil elektrod qaysi qo'lga yoki oyoqqa ulanadi?","options":["o'ng qo'lga;","chap qo'lga;","chap oyoqga;","o'ng oyoqga."]}
+];
+
+// ===================== UTILS =====================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function showToast(msg, dur=2000) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', dur);
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
+  ['quiz-screen','result-screen'].forEach(id2 => document.getElementById(id2).style.display = 'none');
+  const el = document.getElementById(id);
+  if (id==='quiz-screen' || id==='result-screen') el.style.display = 'flex';
+  else { el.style.display = 'flex'; el.classList.add('active'); }
+  window.scrollTo(0, 0);
+}
+function getGroupLabel(g) {
+  if (g === 'random') return '🎲 Tasodifiy';
+  const [from, to] = g.split(',').map(Number); return `Guruh (${from+1}–${to})`;
+}
+
+// ===================== SUPABASE API =====================
+const SB = {
+  h: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY },
+  hw: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+
+  async getSession(key) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/sessions?id=eq.${key}&select=*`, { headers: this.h });
+    const data = await r.json(); return data[0] || null;
+  },
+  async createSession(key, group, perTime, maxPlayers, questions) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/sessions`, {
+      method: 'POST', headers: this.hw,
+      body: JSON.stringify({ id: key, group_val: group, per_time: perTime, max_players: maxPlayers, questions, status: 'waiting' })
+    });
+    return r.ok;
+  },
+  async updateSessionStatus(key, status) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/sessions?id=eq.${key}`, {
+      method: 'PATCH', headers: this.hw, body: JSON.stringify({ status })
+    });
+    return r.ok;
+  },
+  async getPlayers(key) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/players?session_id=eq.${key}&select=*`, { headers: this.h });
+    return await r.json();
+  },
+  async addPlayer(key, name) {
+    const existing = await fetch(`${SUPABASE_URL}/rest/v1/players?session_id=eq.${key}&name=eq.${encodeURIComponent(name)}&select=id`, { headers: this.h });
+    const ex = await existing.json(); if (ex.length > 0) return true;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+      method: 'POST', headers: this.hw,
+      body: JSON.stringify({ session_id: key, name, done: false, pct:0, correct:0, total:0, elapsed:0 })
+    });
+    return r.ok;
+  },
+  async updatePlayerLiveProgress(key, name, correct, total, elapsed, done=false) {
+    const pct = total > 0 ? Math.round((correct/total)*100) : 0;
+    await fetch(`${SUPABASE_URL}/rest/v1/players?session_id=eq.${key}&name=eq.${encodeURIComponent(name)}`, {
+      method: 'PATCH', headers: this.hw,
+      body: JSON.stringify({ pct, correct, total, elapsed, done })
+    });
+  },
+  async saveAnswer(key, name, questionIdx, status) {
+    await fetch(`${SUPABASE_URL}/rest/v1/answers?session_id=eq.${key}&player_name=eq.${encodeURIComponent(name)}&question_idx=eq.${questionIdx}`, { method: 'DELETE', headers: this.hw });
+    await fetch(`${SUPABASE_URL}/rest/v1/answers`, {
+      method: 'POST', headers: this.hw, body: JSON.stringify({ session_id: key, player_name: name, question_idx: questionIdx, status })
+    });
+  },
+  async getAnswers(key, questionIdx) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/answers?session_id=eq.${key}&question_idx=eq.${questionIdx}&select=*`, { headers: this.h });
+    return await r.json();
+  },
+  async clearOldAnswers(key) {
+    await fetch(`${SUPABASE_URL}/rest/v1/answers?session_id=eq.${key}`, { method: 'DELETE', headers: this.hw });
+  }
+};
+
+// ===================== LOGIC ADMIN =====================
+function adminLogin() {
+  if (document.getElementById('admin-pass-input').value === ADMIN_PASSWORD) {
+    isAdmin = true; showScreen('admin-panel');
+  } else showToast('❌ Parol noto\'g\'ri!');
+}
+async function adminCreateSession() {
+  const key = document.getElementById('session-key-input').value.trim();
+  const group = document.getElementById('admin-group-input').value;
+  const time = parseInt(document.getElementById('admin-time-input').value) || 60;
+  const maxP = parseInt(document.getElementById('admin-maxplayers').value) || 20;
+  if (!key) { showToast('Kalit so\'z kiriting!'); return; }
+
+  let selected = shuffle(Array.from({length: QUESTIONS.length}, (_, i) => i)).slice(0, 30);
+  const questions = selected.map(i => {
+    const q = QUESTIONS[i]; const optIdx = shuffle([0,1,2,3].slice(0, q.options.length));
+    return { q: q.q, options: optIdx.map(j => q.options[j]), correct: optIdx.indexOf(0) };
+  });
+
+  if (await SB.createSession(key, group, time, maxP, questions)) {
+    sessionKey = key; sessionData = { group, perTime: time, questions }; quiz = questions; perTime = time;
+    document.getElementById('aw-key').textContent = key;
+    document.getElementById('aw-group').textContent = getGroupLabel(group);
+    document.getElementById('aw-time').textContent = time + 's';
+    showScreen('admin-waiting'); startAdminPoll();
+  }
+}
+function startAdminPoll() {
+  pollInterval = setInterval(async () => {
+    const p = await SB.getPlayers(sessionKey);
+    document.getElementById('aw-count').textContent = p.length;
+    document.getElementById('aw-players').innerHTML = p.map(x => `<div class="player-chip"><span class="dot"></span>${x.name}</div>`).join('');
+  }, 1500);
+}
+async function adminStartTest() {
+  await SB.clearOldAnswers(sessionKey);
+  if (await SB.updateSessionStatus(sessionKey, 'started:0')) {
+    clearInterval(pollInterval); startCountdown();
+  }
+}
+function adminCancel() { clearInterval(pollInterval); showScreen('admin-panel'); }
+
+// ===================== LOGIC STUDENT =====================
+function goStudentKey() {
+  userName = document.getElementById('student-name-input').value.trim();
+  if (userName) showScreen('student-key');
+}
+async function studentJoin() {
+  const key = document.getElementById('student-key-input').value.trim();
+  const sess = await SB.getSession(key);
+  if (!sess) { showToast('❌ Sessiya topilmadi!'); return; }
+
+  sessionKey = key; quiz = sess.questions; perTime = sess.per_time;
+  await SB.addPlayer(key, userName);
+
+  // KELIB QO'SHILISH: Agar test allaqachon boshlangan bo'lsa, darhol o'sha savolga o'tkazish
+  if (sess.status.startsWith('started:')) {
+    current = parseInt(sess.status.split(':')[1]);
+    skipped = current; // Avvalgi savollarni o'tkazib yuborildi deb hisoblash
+    startQuizNow();
+  } else {
+    document.getElementById('sw-group').textContent = getGroupLabel(sess.group_val);
+    document.getElementById('sw-time').textContent = sess.per_time + 's';
+    showScreen('student-waiting'); startStudentPoll();
+  }
+}
+function startStudentPoll() {
+  pollInterval = setInterval(async () => {
+    const s = await SB.getSession(sessionKey);
+    const p = await SB.getPlayers(sessionKey);
+    document.getElementById('sw-count').textContent = p.length;
+    document.getElementById('sw-players').innerHTML = p.map(x => `<div class="player-chip ${x.name===userName?'me':''}"><span class="dot"></span>${x.name}</div>`).join('');
+    if (s && s.status.startsWith('started:')) { clearInterval(pollInterval); startCountdown(); }
+  }, 1500);
+}
+
+// ===================== GAME ENGINE =====================
+function startCountdown() {
+  showScreen('countdown-screen'); let n = 3;
+  const cd = setInterval(() => {
+    n--; document.getElementById('countdown-num').textContent = n;
+    if (n <= 0) { clearInterval(cd); startQuizNow(); }
+  }, 1000);
+}
+function startQuizNow() {
+  totalElapsedSeconds = 0; showScreen('quiz-screen');
+  document.getElementById('next-btn').style.display = isAdmin ? 'block' : 'none';
+  renderQuestion(); startMainQuizLoop();
+}
+function startMainQuizLoop() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    const s = await SB.getSession(sessionKey); if (!s) return;
+    if (s.status === 'finished') { finishQuiz(); return; }
+    
+    if (s.status.startsWith('started:')) {
+      const serverQ = parseInt(s.status.split(':')[1]);
+      if (serverQ > current) { 
+        if (!answered && !isAdmin) skipped++; 
+        current = serverQ; renderQuestion(); 
+      }
+    }
+    // Jonli natijalar paneli
+    const ans = await SB.getAnswers(sessionKey, current);
+    const p = await SB.getPlayers(sessionKey);
+    document.getElementById('total-players-count').textContent = p.length;
+    document.getElementById('answered-count').textContent = ans.length;
+    document.getElementById('live-chips').innerHTML = p.map(x => {
+      const a = ans.find(i => i.player_name === x.name);
+      let c = '', ic = '⏳';
+      if (a) { if (a.status==='correct') {c='correct'; ic='✅';} else {c='wrong'; ic='❌';} }
+      return `<div class="live-chip ${c}">${ic} ${x.name}</div>`;
+    }).join('');
+
+    // Agar hamma o'quvchilar javob berib bo'lsa, admin avtomatik keyingisiga o'tkazadi
+    if (isAdmin && ans.length >= p.length && p.length > 0) nextQuestion();
+  }, 1500);
+}
+
+function renderQuestion() {
+  answered = false; const q = quiz[current];
+  document.getElementById('prog-text').textContent = `${current+1} / ${quiz.length}`;
+  document.getElementById('score-live').innerHTML = `✅ ${score} &nbsp; ❌ ${wrong}`;
+  document.getElementById('prog-fill').style.width = `${((current)/quiz.length)*100}%`;
+  document.getElementById('q-number').textContent = `Savol ${current+1}`;
+  document.getElementById('q-text').textContent = q.q;
+
+  const list = document.getElementById('options-list'); list.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<button class="opt-btn" onclick="selectOption(${i}, this)"><span class="opt-letter">${LETTERS[i]}</span><span>${opt}</span></button>`;
+    list.appendChild(li);
+  });
+  if (isAdmin) document.getElementById('next-btn').textContent = (current+1 >= quiz.length) ? "Tugatish 🏁" : "Keyingi ▶";
+
+  // SAVOL TAYMERI & VAQT TUGASHI BILAN AVTOMATIK O'TISH
+  clearInterval(timer); timeLeft = perTime;
+  const badge = document.getElementById('timer-badge'); badge.textContent = timeLeft; badge.classList.remove('urgent');
+
+  timer = setInterval(async () => {
+    timeLeft--; badge.textContent = timeLeft;
+    if (!answered && !isAdmin) totalElapsedSeconds++; // Real ishlash vaqtini hisoblash
+    if (timeLeft <= 10) badge.classList.add('urgent');
+    
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      if (!answered && !isAdmin) { skipped++; await SB.saveAnswer(sessionKey, userName, current, 'wrong'); }
+      // VAQT TUGAGANDA KEYINGISIGA O'TISH BUYRUG'I
+      if (isAdmin) nextQuestion();
+    }
+  }, 1000);
+}
+
+async function selectOption(idx, btn) {
+  if (answered || isAdmin) return; answered = true; clearInterval(timer);
+  const q = quiz[current];
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  
+  if (idx === q.correct) { btn.classList.add('correct'); score++; await SB.saveAnswer(sessionKey, userName, current, 'correct'); }
+  else { btn.classList.add('wrong'); wrong++; await SB.saveAnswer(sessionKey, userName, current, 'wrong'); }
+  
+  // Progressni jonli yangilash
+  await SB.updatePlayerLiveProgress(sessionKey, userName, score, quiz.length, totalElapsedSeconds, false);
+}
+
+async function nextQuestion() {
+  if (current + 1 >= quiz.length) await SB.updateSessionStatus(sessionKey, 'finished');
+  else await SB.updateSessionStatus(sessionKey, `started:${current + 1}`);
+}
+
+// ===================== YAKUNIY NATIJA VA REYTING =====================
+async function finishQuiz() {
+  clearInterval(timer); clearInterval(pollInterval); showScreen('result-screen');
+  const pct = Math.round((score / quiz.length) * 100);
+  
+  if (!isAdmin) {
+    document.getElementById('big-score').textContent = pct + '%';
+    document.getElementById('r-correct').textContent = score;
+    document.getElementById('r-wrong').textContent = wrong;
+    document.getElementById('r-skipped').textContent = skipped;
+    document.getElementById('r-total').textContent = quiz.length;
+    await SB.updatePlayerLiveProgress(sessionKey, userName, score, quiz.length, totalElapsedSeconds, true);
+  } else {
+    document.getElementById('big-score').textContent = '🏁';
+  }
+
+  // REYTINGNI SARALASH (To'g'ri javob ko'pligi va Vaqt kamligiga qarab)
+  setTimeout(async () => {
+    const players = await SB.getPlayers(sessionKey);
+    players.sort((a,b) => b.correct - a.correct || a.elapsed - b.elapsed);
+    
+    document.getElementById('session-lb').innerHTML = players.map((p, idx) => `
+      <div class="lb-item ${p.name === userName ? 'me' : ''}">
+        <div class="lb-rank">${idx + 1}</div>
+        <div class="lb-name">${p.name} ${p.name === userName ? '(Siz)' : ''}</div>
+        <div class="lb-score">
+          ✅ ${p.correct} ta <span>⏱ ${p.elapsed} soniya</span>
+        </div>
+      </div>
+    `).join('');
+  }, 1500);
+}
+</script>
+</body>
+</html>
