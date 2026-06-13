@@ -57,12 +57,14 @@
         <h2>Test Sozlamalari</h2>
         <div class="form-group">
             <label>O'quvchilar uchun kalit so'z</label>
-            <input type="text" id="adm-key" value="012">
+            <input type="text" id="adm-key" value="012" placeholder="Masalan: metro77">
         </div>
         <div class="form-group">
             <label>Savol guruhi</label>
             <select id="adm-group">
                 <option value="g1">1-guruh: 1–30-savollar</option>
+                <option value="g2">2-guruh: 31–60-savollar</option>
+                <option value="g3">3-guruh: 61–90-savollar</option>
             </select>
         </div>
         <div class="form-group">
@@ -78,7 +80,7 @@
 
     <div id="scr-adm-wait" class="container">
         <h2>Kutish Zali (Admin)</h2>
-        <p style="text-align:center; color:var(--muted);" id="lbl-adm-key">Kalit so'z: -</p>
+        <p style="text-align:center; color:var(--muted); font-size:16px; font-weight:bold;" id="lbl-adm-key">Kalit so'z: -</p>
         <div class="live-bar" id="lbar-adm-wait"></div>
         <button class="btn-primary" style="margin-top:20px;" onclick="startQuizServer()">🚀 Testni Boshlash</button>
     </div>
@@ -130,13 +132,29 @@ const DB_URL = 'https://loiunbshwzptgqaxmrrp.supabase.co';
 const DB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvaXVuYnNod3pwdGdxeG1ycnAiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NDU0NDAwMCwiZXhwIjoyMTAwMTAwMDAwfQ.demo_secure';
 const supabaseClient = supabase.createClient(DB_URL, DB_KEY);
 
-const DATA = [
-    {q: "Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?", o: ["Metrologik tekshiruv va kalibrlash", "Faqat vizual ko'rik", "Hech qanday tekshiruv", "Faqat ta'mirlash"], c: 0},
-    {q: "Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?", o: ["Uskunalar narxini belgilash", "Tibbiy diagnostika uskunalarining aniqligini kafolatlash", "Uskunalarni chet eldan sotib olish", "Bino xavfsizligi"], c: 1},
-    {q: "O'lchash vositalarining qiyoslash turlari qaysilar?", o: ["Faqat davriy qiyoslash", "Ixtiyoriy qiyoslash", "Davriy, navbatdan tashqari, inspeksiya, ekspert", "Boshlang'ich qiyoslash"], c: 2},
-    {q: "Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "O'ng oyoqqa", "Chap oyoqqa", "Chap qo'lga"], c: 3},
-    {q: "Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "Chap qo'lga", "O'ng oyoqqa", "Chap oyoqqa"], c: 0}
-];
+// GURUHGA BO'LINGAN SAVOLLAR BAZASI (BUNGA JAMI SAVOLLARNI GURURHLAB JOYLASHTIRASIZ)
+const DATA_GROUPS = {
+    g1: [
+        {q: "1-GURUH: Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?", o: ["Metrologik tekshiruv va kalibrlash", "Faqat vizual ko'rik", "Hech qanday tekshiruv", "Faqat ta'mirlash"], c: 0},
+        {q: "Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?", o: ["Uskunalar narxini belgilash", "Tibbiy diagnostika uskunalarining aniqligini kafolatlash", "Uskunalarni chet eldan sotib olish", "Bino xavfsizligi"], c: 1},
+        {q: "O'lchash vositalarining qiyoslash turlari qaysilar?", o: ["Faqat davriy qiyoslash", "Ixtiyoriy qiyoslash", "Davriy, navbatdan tashqari, inspeksiya, ekspert", "Boshlang'ich qiyoslash"], c: 2},
+        {q: "Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "O'ng oyoqqa", "Chap oyoqqa", "Chap qo'lga"], c: 3},
+        {q: "Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "Chap qo'lga", "O'ng oyoqqa", "Chap oyoqqa"], c: 0}
+        // Shu yerda jami 30 ta test bo'ladi...
+    ],
+    g2: [
+        {q: "2-GURUH: Metrologik tekshiruvdan o'tmagan tibbiy uskunani shifoxonada ishlatish mumkinmi?", o: ["Ha, mumkin", "Faqat bosh vrach ruxsati bilan", "Mutloqo taqiqlanadi", "Vaqtincha mumkin"], c: 2},
+        {q: "O'lchov vositalarining xatoligi deb nimaga aytiladi?", o: ["O'lchash natijasi va haqiqiy qiymat orasidagi farq", "Uskunaning og'irligi", "Elektr sarfi", "Ishlash muddati"], c: 0}
+        // 31-dan 60-gacha bo'lgan testlarni shu yerga qo'shasiz...
+    ],
+    g3: [
+        {q: "3-GURUH: Kalibrlash nima?", o: ["Uskunani yuvish", "O'lchash vositasi ko'rsatishi va mos etalon qiymati o'rtasidagi bog'liqlikni aniqlash", "Uskunani sindirish", "Yangi dastur o'rnatish"], c: 1}
+        // 61-dan 90-gacha bo'lgan testlarni shu yerga qo'shasiz...
+    ]
+};
+
+// Tanlangan joriy guruh elementlari shu yerga ko'chib o'tadi
+let DATA = [];
 
 let role = ''; let myName = ''; let sessionKey = ''; let currentQ = -1; let score = 0; let timer = null; let transitionTimeout = null;
 let gamePlayers = []; let gameAnswers = []; let gameStatus = 'waiting'; let timeLimit = 60;
@@ -146,8 +164,14 @@ function changeScreen(id) { document.querySelectorAll('.container').forEach(c =>
 function loginAdmin() { window.scrollTo(0,0); if(document.getElementById('adm-pass').value === 'metro777') { role = 'admin'; changeScreen('scr-setup'); } else alert('Xato parol!'); }
 
 function setupSession() {
+    // 1-TUZATISH: Kalit so'z inputdan birinchi navbatda dinamik ravishda o'qiladi
     sessionKey = document.getElementById('adm-key').value.trim();
     timeLimit = parseInt(document.getElementById('adm-time').value) || 60;
+    
+    // 2-TUZATISH: Tanlangan guruh aniqlanadi va DATA massivi o'sha guruh savollariga tenglashtiriladi
+    let selectedGroup = document.getElementById('adm-group').value;
+    DATA = DATA_GROUPS[selectedGroup] || DATA_GROUPS['g1'];
+
     if(!sessionKey) return alert('Kalit so‘zni kiriting!');
     document.getElementById('lbl-adm-key').textContent = `Kalit so'z: ${sessionKey}`;
     changeScreen('scr-adm-wait');
@@ -164,6 +188,7 @@ function joinSessionServer() {
 }
 
 function connectRealtime() {
+    // Dinamik kalit so'z orqali Supabase Realtime kanali ulanishi kafolatlandi
     channel = supabaseClient.channel('metro-' + sessionKey, { config: { broadcast: { self: true } } });
 
     channel.on('broadcast', { event: 'sync' }, ({ payload }) => {
@@ -171,10 +196,14 @@ function connectRealtime() {
         gamePlayers = payload.players;
         gameAnswers = payload.answers;
         timeLimit = payload.timeLimit;
+        
+        // O'quvchilarda ham guruh ma'lumotlari mos ravishda sinxronlashishi ta'minlanadi
+        if (payload.groupData && role === 'student') {
+            DATA = payload.groupData;
+        }
 
         updateLiveBars();
 
-        // 1. Poyga holatini oldini olish: Javoblar to'liq yig'ilganda faqat bitta tranzaksiya
         if (role === 'admin' && gameStatus.startsWith('started:') && gamePlayers.length > 0 && !isTransitioning) {
             let currentAnswers = gameAnswers.filter(x => x.q === currentQ);
             if (currentAnswers.length >= gamePlayers.length) {
@@ -186,7 +215,6 @@ function connectRealtime() {
             }
         }
 
-        // 2. Sinxron yuklash va kech qolgan o'quvchilarni majburiy to'g'ri ekranga otish
         if (gameStatus.startsWith('started:') || gameStatus === 'showing_res') {
             let serverQ = parseInt(gameStatus.split(':')[1]);
             let activeScreen = document.getElementById('scr-quiz').classList.contains('active');
@@ -194,7 +222,7 @@ function connectRealtime() {
             if (serverQ !== currentQ || !activeScreen) {
                 if (serverQ !== currentQ) {
                     currentQ = serverQ;
-                    hasAnsweredCurrent = false; // Har bir yangi savolda flag aniq yangilanadi
+                    hasAnsweredCurrent = false;
                 }
                 loadQuestion();
                 if (gameStatus === 'showing_res') {
@@ -246,7 +274,13 @@ function broadcastState() {
     if (role === 'admin' && channel) {
         channel.send({
             event: 'sync',
-            payload: { status: gameStatus, players: gamePlayers, answers: gameAnswers, timeLimit: timeLimit }
+            payload: { 
+                status: gameStatus, 
+                players: gamePlayers, 
+                answers: gameAnswers, 
+                timeLimit: timeLimit,
+                groupData: DATA // Guruh ichidagi savollar o'quvchilarga ham tarqatiladi
+            }
         });
     }
 }
@@ -278,6 +312,8 @@ function loadQuestion() {
     document.getElementById('btn-adm-next').style.display = (role === 'admin') ? 'block' : 'none';
     
     let qData = DATA[currentQ];
+    if (!qData) return;
+    
     document.getElementById('quiz-qnum').textContent = `Savol: ${currentQ + 1}/${DATA.length}`;
     document.getElementById('quiz-qtext').textContent = qData.q;
     
@@ -295,7 +331,6 @@ function loadQuestion() {
         document.getElementById('quiz-timer').textContent = limit;
         if (limit <= 0) {
             clearInterval(timer);
-            // Faqat admin vaqt tugaganini aniqlaydi va buyruq zanjirini boshqaradi
             if (role === 'admin' && !isTransitioning) {
                 isTransitioning = true;
                 gameStatus = 'showing_res';
@@ -324,7 +359,9 @@ function submitAnswer(idx, btn) {
     if (isCorrect) btn.classList.add('correct');
     else { 
         btn.classList.add('wrong'); 
-        document.querySelectorAll('.opt-btn')[DATA[currentQ].c].classList.add('correct'); 
+        if(document.querySelectorAll('.opt-btn')[DATA[currentQ].c]) {
+            document.querySelectorAll('.opt-btn')[DATA[currentQ].c].classList.add('correct'); 
+        }
     }
 
     if (role === 'student') {
