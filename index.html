@@ -2,18 +2,65 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Metrologiya — Guruh Testi</title>
     <style>
-        :root { --bg-color: #0f111a; --card-bg: #161925; --accent-color: #5d75f5; --text-main: #f1f3f9; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { width: 100%; max-width: 440px; background: var(--card-bg); border-radius: 24px; padding: 32px; display: none; }
+        :root {
+            --bg-color: #0f111a;
+            --card-bg: #161925;
+            --input-bg: #1f2336;
+            --border-color: #2e344d;
+            --accent-color: #5d75f5;
+            --text-main: #f1f3f9;
+            --text-muted: #7e87a6;
+            --success: #2ec4b6;
+            --danger: #e63946;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px 24px;
+            display: none;
+        }
         .container.active { display: block; }
         h2 { text-align: center; margin-bottom: 24px; }
-        .btn-mode, .btn-primary { width: 100%; padding: 16px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
-        .btn-mode { background: #1f2336; color: white; }
-        .btn-primary { background: var(--accent-color); color: white; }
-        input { width: 100%; padding: 14px; background: #1f2336; border: 1px solid #2e344d; border-radius: 14px; color: white; margin-bottom: 10px; }
+        .btn-mode {
+            width: 100%; padding: 16px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 16px;
+            color: var(--text-main); font-size: 16px; cursor: pointer; margin-bottom: 12px;
+        }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        input {
+            width: 100%; padding: 14px 16px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 14px; color: var(--text-main); font-size: 16px;
+        }
+        .btn-primary {
+            width: 100%; padding: 16px; background: var(--accent-color);
+            border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 700; cursor: pointer;
+        }
+        .option-btn {
+            width: 100%; padding: 14px; background: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 12px;
+            color: white; font-size: 15px; text-align: left; cursor: pointer; margin-bottom: 8px;
+        }
+        .option-btn.correct { background: var(--success); border-color: var(--success); }
+        .option-btn.wrong { background: var(--danger); border-color: var(--danger); }
+        .timer { font-size: 20px; font-weight: bold; color: var(--danger); text-align: center; margin-bottom: 15px; }
+        .score-board { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -25,45 +72,87 @@
     </div>
 
     <div id="screen-admin-auth" class="container">
-        <h2>Admin Paroli</h2>
-        <input type="password" id="admin-pass" placeholder="Parolni kiriting">
+        <h2>Admin Haqiqiyligi</h2>
+        <div class="form-group">
+            <label>Admin Paroli</label>
+            <input type="password" id="admin-pass" placeholder="Parolni kiriting">
+        </div>
         <button class="btn-primary" onclick="verifyAdmin()">Kirish</button>
-        <button class="btn-mode" onclick="changeScreen('screen-mode')">← Orqaga</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
     <div id="screen-admin-setup" class="container">
         <h2>Test Sozlamalari</h2>
-        <input type="text" id="session-key" value="012">
+        <div class="form-group">
+            <label>O'quvchilar uchun kalit so'z</label>
+            <input type="text" id="session-key" value="012">
+        </div>
+        <div class="form-group">
+            <label>Har savolga vaqt (soniya)</label>
+            <input type="number" id="time-limit" value="30">
+        </div>
         <button class="btn-primary" onclick="changeScreen('screen-admin-waiting')">✅ Sessiya yaratish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
     <div id="screen-admin-waiting" class="container">
         <h2>Kutish Zali</h2>
-        <p style="text-align:center; color:#7e87a6;">O'quvchilar qo'shilishini kuting...</p>
+        <p style="text-align:center; color:var(--text-muted); margin-bottom:20px;">O'quvchilar tayyor. Testni boshlashingiz mumkin.</p>
         <button class="btn-primary" onclick="startQuizNow()">🚀 Testni Boshlash</button>
     </div>
 
     <div id="screen-student-join" class="container">
         <h2>Testga Qo'shilish</h2>
-        <input type="text" id="student-name" placeholder="Ism-familiya">
-        <input type="text" id="student-key" placeholder="Kalit so'z">
-        <button class="btn-primary" onclick="changeScreen('screen-student-waiting')">Guruhga Qo'shilish</button>
-        <button class="btn-mode" onclick="changeScreen('screen-mode')">← Orqaga</button>
+        <div class="form-group">
+            <label>Ism va Familiyangiz</label>
+            <input type="text" id="student-name" placeholder="Ismingiz">
+        </div>
+        <div class="form-group">
+            <label>Sessiya Kalit So'zi</label>
+            <input type="text" id="student-key" placeholder="Kalit so'zni yozing">
+        </div>
+        <button class="btn-primary" onclick="joinStudent()">Guruhga Qo'shilish</button>
+        <button class="btn-mode" style="margin-top:10px;" onclick="changeScreen('screen-mode')">← Orqaga</button>
     </div>
 
     <div id="screen-student-waiting" class="container">
         <h2>Kutish rejimi...</h2>
+        <p style="text-align:center; color:var(--text-muted); margin-top:15px;">O'qituvchi testni boshlashini kuting.</p>
     </div>
 
     <div id="screen-quiz" class="container">
-        <h2>Test boshlandi!</h2>
-        <p style="text-align:center;">Savollarni yuklamoqdaman...</p>
+        <div class="score-board">
+            <span id="question-counter">Savol: 1/5</span>
+            <span id="live-score">To'g'ri: 0</span>
+        </div>
+        <div class="timer" id="timer-display">30</div>
+        <h3 id="question-text" style="margin-bottom: 20px; font-size: 18px; line-height: 1.4;">Savol matni</h3>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="screen-results" class="container">
+        <h2>Test Yakunlandi!</h2>
+        <p id="final-result-text" style="text-align:center; font-size:18px; margin: 20px 0; color:var(--success); font-weight:bold;"></p>
+        <button class="btn-primary" onclick="location.reload()">Qaytadan boshlash</button>
     </div>
 
 <script>
+const QUESTIONS = [
+    {q: "Tibbiy texnika vositalarining ishlash samaradorligini ta'minlash uchun qanday tekshiruvlar o'tkaziladi?", o: ["Metrologik tekshiruv va kalibrlash", "Faqat vizual ko'rik", "Hech qanday tekshiruv", "Faqat ta'mirlash"], c: 0},
+    {q: "Bemor xavfsizligini ta'minlashda metrologiyaning roli nimadan iborat?", o: ["Uskunalar narxini belgilash", "Tibbiy diagnostika uskunalarining aniqligini kafolatlash", "Uskunalarni chet eldan sotib olish", "Bino xavfsizligi"], c: 1},
+    {q: "O'lchash vositalarining qiyoslash turlari qaysilar?", o: ["Faqat davriy qiyoslash", "Ixtiyoriy qiyoslash", "Davriy, navbatdan tashqari, inspeksiya, ekspert", "Boshlang'ich qiyoslash"], c: 2},
+    {q: "Elektrokardiograf qurilmalarida sariq elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "O'ng oyoqqa", "Chap oyoqqa", "Chap qo'lga"], c: 3},
+    {q: "Elektrokardiograf qurilmalarida qizil elektrod qaysi a'zoga ulanadi?", o: ["O'ng qo'lga", "Chap qo'lga", "O'ng oyoqqa", "Chap oyoqqa"], c: 0}
+];
+
+let currentQuestionIndex = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = 30;
+
 function changeScreen(targetId) {
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
+    document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+    document.getElementById(targetId).style.display = 'block';
 }
 
 function verifyAdmin() {
@@ -71,9 +160,83 @@ function verifyAdmin() {
     else alert('Xato parol!');
 }
 
+function joinStudent() {
+    const name = document.getElementById('student-name').value.trim();
+    const key = document.getElementById('student-key').value.trim();
+    if(!name || !key) return alert('Hamma maydonlarni to\'ldiring!');
+    
+    // O'quvchi kirganda to'g'ridan-to'g'ri test sahifasini simulyatsiya qilamiz
+    startQuizNow();
+}
+
 function startQuizNow() {
-    // BU QISM MUHIM: Tugmani bosganda test sahifasiga o'tish
     changeScreen('screen-quiz');
+    currentQuestionIndex = 0;
+    score = 0;
+    showQuestion();
+}
+
+function showQuestion() {
+    if(currentQuestionIndex >= QUESTIONS.length) {
+        return finishQuiz();
+    }
+
+    clearInterval(timerInterval);
+    const currentQuestion = QUESTIONS[currentQuestionIndex];
+    
+    document.getElementById('question-counter').textContent = `Savol: ${currentQuestionIndex + 1}/${QUESTIONS.length}`;
+    document.getElementById('live-score').textContent = `To'g'ri: ${score}`;
+    document.getElementById('question-text').textContent = currentQuestion.q;
+    
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+    
+    currentQuestion.o.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.onclick = () => checkAnswer(index, btn);
+        optionsContainer.appendChild(btn);
+    });
+
+    const userTime = parseInt(document.getElementById('time-limit').value);
+    timeLeft = userTime ? userTime : 30;
+    document.getElementById('timer-display').textContent = timeLeft;
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer-display').textContent = timeLeft;
+        if(timeLeft <= 0) {
+            currentQuestionIndex++;
+            showQuestion();
+        }
+    }, 1000);
+}
+
+function checkAnswer(selectedIndex, clickedBtn) {
+    clearInterval(timerInterval);
+    const correctIndex = QUESTIONS[currentQuestionIndex].c;
+    const buttons = document.querySelectorAll('.option-btn');
+    
+    buttons.forEach(btn => btn.disabled = true);
+
+    if(selectedIndex === correctIndex) {
+        clickedBtn.classList.add('correct');
+        score++;
+    } else {
+        clickedBtn.classList.add('wrong');
+        buttons[correctIndex].classList.add('correct');
+    }
+
+    setTimeout(() => {
+        currentQuestionIndex++;
+        showQuestion();
+    }, 1500);
+}
+
+function finishQuiz() {
+    changeScreen('screen-results');
+    document.getElementById('final-result-text').textContent = `Siz 5 ta savoldan ${score} tasiga to'g'ri javob berdingiz!`;
 }
 </script>
 </body>
